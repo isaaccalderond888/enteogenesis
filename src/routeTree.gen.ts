@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminloginRouteImport } from './routes/adminlogin'
 import { Route as AplicarRouteImport } from './routes/aplicar'
+import { Route as DiagnosticoRouteImport } from './routes/diagnostico'
 import { Route as ExpedientesRouteImport } from './routes/expedientes'
 import { Route as GraciasRouteImport } from './routes/gracias'
 import { Route as LoginRouteImport } from './routes/login'
@@ -32,6 +33,11 @@ const AdminloginRoute = AdminloginRouteImport.update({
 const AplicarRoute = AplicarRouteImport.update({
   id: '/aplicar',
   path: '/aplicar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiagnosticoRoute = DiagnosticoRouteImport.update({
+  id: '/diagnostico',
+  path: '/diagnostico',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ExpedientesRoute = ExpedientesRouteImport.update({
@@ -69,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/adminlogin': typeof AdminloginRoute
   '/aplicar': typeof AplicarRoute
+  '/diagnostico': typeof DiagnosticoRoute
   '/expedientes': typeof ExpedientesRoute
   '/gracias': typeof GraciasRoute
   '/login': typeof LoginRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/adminlogin': typeof AdminloginRoute
   '/aplicar': typeof AplicarRoute
+  '/diagnostico': typeof DiagnosticoRoute
   '/expedientes': typeof ExpedientesRoute
   '/gracias': typeof GraciasRoute
   '/login': typeof LoginRoute
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/adminlogin': typeof AdminloginRoute
   '/aplicar': typeof AplicarRoute
+  '/diagnostico': typeof DiagnosticoRoute
   '/expedientes': typeof ExpedientesRoute
   '/gracias': typeof GraciasRoute
   '/login': typeof LoginRoute
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/'
     | '/adminlogin'
     | '/aplicar'
+    | '/diagnostico'
     | '/expedientes'
     | '/gracias'
     | '/login'
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/'
     | '/adminlogin'
     | '/aplicar'
+    | '/diagnostico'
     | '/expedientes'
     | '/gracias'
     | '/login'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/'
     | '/adminlogin'
     | '/aplicar'
+    | '/diagnostico'
     | '/expedientes'
     | '/gracias'
     | '/login'
@@ -139,6 +151,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminloginRoute: typeof AdminloginRoute
   AplicarRoute: typeof AplicarRoute
+  DiagnosticoRoute: typeof DiagnosticoRoute
   ExpedientesRoute: typeof ExpedientesRoute
   GraciasRoute: typeof GraciasRoute
   LoginRoute: typeof LoginRoute
@@ -168,6 +181,13 @@ declare module '@tanstack/react-router' {
       path: '/aplicar'
       fullPath: '/aplicar'
       preLoaderRoute: typeof AplicarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/diagnostico': {
+      id: '/diagnostico'
+      path: '/diagnostico'
+      fullPath: '/diagnostico'
+      preLoaderRoute: typeof DiagnosticoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/expedientes': {
@@ -219,6 +239,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminloginRoute: AdminloginRoute,
   AplicarRoute: AplicarRoute,
+  DiagnosticoRoute: DiagnosticoRoute,
   ExpedientesRoute: ExpedientesRoute,
   GraciasRoute: GraciasRoute,
   LoginRoute: LoginRoute,
