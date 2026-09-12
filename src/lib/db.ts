@@ -85,6 +85,70 @@ function toSql(run: Run): Sql {
   return sql;
 }
 
+/**
+ * The `migrations/*.sql` files, inlined by the bundler (no runtime fs — the
+ * serverless bundle ships no migrations directory). Shared by both backends so
+ * they apply exactly the same schema. The glob does not descend, so the opt-in
+ * copy under `migrations/auth/` stays out.
+ */
+function migrationSources(): Record<string, string> {
+  return import.meta.glob("/migrations/*.sql", {
+    query: "?raw",
+    import: "default",
+    eager: true,
+  }) as Record<string, string>;
+}
+
+/** Lock id for the migration pass — any fixed bigint, shared by all instances. */
+const MIGRATION_LOCK_KEY = 8274123456789;
+
+/**
+ * Apply pending migrations to Neon at startup.
+ *
+ * `scripts/migrate.mjs` already does this during the Vercel build, but it
+ * SKIPS SILENTLY when DATABASE_URL is not visible to the build step — leaving a
+ * green deploy pointed at a database with no tables, where the first insert
+ * fails at runtime. Running the same pass here makes the app self-heal: it is a
+ * no-op when the build already migrated (`_migrations` is the single source of
+ * truth for what ran, keyed by basename), and it creates the schema when it did
+ * not.
+ *
+ * The whole pass runs in ONE transaction guarded by `pg_advisory_xact_lock`, so
+ * concurrent serverless instances serialize instead of racing on a duplicate
+ * `_migrations` insert. A transaction-scoped lock (not a session one) is what
+ * survives Neon's pooled endpoint, where connections are not sticky.
+ */
+async function migrateNeon(pool: import("pg").Pool): Promise<void> {
+  const migrations = migrationSources();
+  const client = await pool.connect();
+  try {
+    await client.query(
+      "create table if not exists _migrations (name text primary key, applied_at timestamptz not null default now())",
+    );
+    await client.query("BEGIN");
+    try {
+      await client.query("select pg_advisory_xact_lock($1)", [MIGRATION_LOCK_KEY]);
+      // Read inside the lock: another instance may have applied files since.
+      const done = (
+        await client.query<{ name: string }>("select name from _migrations")
+      ).rows.map((r) => r.name);
+      for (const { name, path } of pendingMigrations(Object.keys(migrations), done)) {
+        // Postgres DDL is transactional, so a failure anywhere rolls the whole
+        // pass back — never a half-created schema recorded as applied.
+        await client.query(migrations[path]);
+        await client.query("insert into _migrations (name) values ($1)", [name]);
+        console.log(`[db] applied ${name}`);
+      }
+      await client.query("COMMIT");
+    } catch (err) {
+      await client.query("ROLLBACK").catch(() => undefined);
+      throw err;
+    }
+  } finally {
+    client.release();
+  }
+}
+
 function createNeonSql(): Promise<Sql> {
   globalRef.__pgSqlPromise__ ??= (async () => {
     // Regular Postgres driver: node-postgres (`pg`) — works directly with Neon's
@@ -94,6 +158,8 @@ function createNeonSql(): Promise<Sql> {
     types.setTypeParser(OID_DATE, identity);
     types.setTypeParser(OID_INTERVAL, identity);
     const pool = new Pool({ connectionString: databaseUrl });
+    // Before the first query, so no request can hit a missing table.
+    await migrateNeon(pool);
     return toSql(async <T>(text: string, params: unknown[]) => {
       const res = await pool.query(text, params);
       return res.rows as T[];
@@ -137,11 +203,7 @@ async function createPgliteSql(): Promise<Sql> {
   // passes serialized on a global chain so concurrent callers never
   // double-apply.
   const migrate = async (): Promise<void> => {
-    const migrations = import.meta.glob("/migrations/*.sql", {
-      query: "?raw",
-      import: "default",
-      eager: true,
-    }) as Record<string, string>;
+    const migrations = migrationSources();
     const doneRows = await pg.query<{ name: string }>(
       "select name from _migrations",
     );
