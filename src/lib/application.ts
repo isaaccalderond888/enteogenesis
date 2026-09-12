@@ -11,7 +11,18 @@ export type Application = {
   fechaNacimiento: string;
   fechasRetiro: string;
   fechasRetiroOtra: string;
-  sexo: string;
+  /**
+   * Separados a propósito: el sexo asignado al nacer es dato de tamizaje médico
+   * (interacciones, embarazo) y la identidad de género es cómo se nombra y se
+   * sostiene a la persona en el contenedor. Mezclarlos pierde una de las dos.
+   *
+   * `sexo` se conserva sólo para leer las fichas cerradas antes de este cambio.
+   */
+  sexoAlNacer: string;
+  identidadGenero: string;
+  identidadGeneroOtra: string;
+  /** @deprecated Fichas anteriores a la separación de sexo e identidad. */
+  sexo?: string;
   ocupacion: string;
   telefono: string;
   email: string;
@@ -62,7 +73,9 @@ export const emptyApplication = (): Application => ({
   fechaNacimiento: "",
   fechasRetiro: "enteogenesis-sep-2026",
   fechasRetiroOtra: "",
-  sexo: "",
+  sexoAlNacer: "",
+  identidadGenero: "",
+  identidadGeneroOtra: "",
   ocupacion: "",
   telefono: "",
   email: "",
@@ -222,7 +235,10 @@ export function validateStep(step: number, data: Application): string | null {
     case 1: {
       if (!filled(data.nombreCompleto)) return "Escribe tu nombre completo.";
       if (!filled(data.fechaNacimiento)) return "Indica tu fecha de nacimiento.";
-      if (!data.sexo) return "Selecciona tu sexo.";
+      if (!data.sexoAlNacer) return "Selecciona el sexo asignado al nacer.";
+      if (!data.identidadGenero) return "Selecciona tu identidad de género.";
+      if (data.identidadGenero === "Otra" && !data.identidadGeneroOtra.trim())
+        return "Escribe cómo nombras tu identidad de género.";
       if (!filled(data.ocupacion)) return "Indica tu ocupación.";
       if (!filled(data.telefono)) return "Indica un teléfono de contacto.";
       if (!filled(data.email) || !data.email.includes("@"))
@@ -275,6 +291,17 @@ export function validateStep(step: number, data: Application): string | null {
     default:
       return null;
   }
+}
+
+/** Sexo al nacer, leyendo el campo viejo cuando la ficha es anterior al cambio. */
+export function sexoTexto(data: Application): string {
+  return data.sexoAlNacer || data.sexo || "";
+}
+
+/** Identidad de género, con el texto libre cuando la persona eligió "Otra". */
+export function generoTexto(data: Application): string {
+  if (data.identidadGenero === "Otra") return data.identidadGeneroOtra.trim() || "Otra";
+  return data.identidadGenero || data.sexo || "";
 }
 
 export function validateApplication(data: Application): string | null {
@@ -412,7 +439,7 @@ Retiro: ${retreatLabel(data)}
 === IDENTIDAD ===
 Nombre: ${data.nombreCompleto}
 Nacimiento: ${data.fechaNacimiento}
-Sexo: ${data.sexo}
+Sexo asignado al nacer: ${sexoTexto(data)}\nIdentidad de género: ${generoTexto(data)}
 Ocupación: ${data.ocupacion}
 Teléfono: ${data.telefono}
 Email: ${data.email}

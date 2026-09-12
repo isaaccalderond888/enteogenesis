@@ -336,17 +336,46 @@ function Identidad({
           />
         </Field>
       ) : null}
-      <Field label="Sexo" required>
+      <Field label="Sexo asignado al nacer" required>
         <Choice
-          value={data.sexo}
-          onChange={(sexo) => patch({ sexo })}
+          value={data.sexoAlNacer}
+          onChange={(sexoAlNacer) => patch({ sexoAlNacer })}
           options={[
             { value: "Mujer", label: "Mujer" },
             { value: "Hombre", label: "Hombre" },
-            { value: "Otro", label: "Otro" },
+            { value: "Intersex", label: "Intersex / otra variación" },
+            { value: "Prefiero no decir", label: "Prefiero no decir" },
           ]}
         />
       </Field>
+      <Field label="Identidad de género" required>
+        <Choice
+          value={data.identidadGenero}
+          onChange={(identidadGenero) =>
+            patch(
+              identidadGenero === "Otra"
+                ? { identidadGenero }
+                : { identidadGenero, identidadGeneroOtra: "" },
+            )
+          }
+          options={[
+            { value: "Mujer", label: "Mujer" },
+            { value: "Hombre", label: "Hombre" },
+            { value: "No binario", label: "No binario" },
+            { value: "Otra", label: "Otra" },
+            { value: "Prefiero no decir", label: "Prefiero no decir" },
+          ]}
+        />
+      </Field>
+      {data.identidadGenero === "Otra" ? (
+        <Field label="¿Cómo la nombras?" required>
+          <TextInput
+            value={data.identidadGeneroOtra}
+            onChange={(e) => patch({ identidadGeneroOtra: e.target.value })}
+            placeholder="Con tus palabras"
+          />
+        </Field>
+      ) : null}
       <Field label="Ocupación" required>
         <TextInput value={data.ocupacion} onChange={(e) => patch({ ocupacion: e.target.value })} />
       </Field>
