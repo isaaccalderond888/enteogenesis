@@ -91,7 +91,7 @@ function Diagnostico() {
   };
   const ok = r.backend === "neon" && r.conecta && r.tablaFichas;
   const row = (k: string, v: string) => (
-    <div style={{ display: "flex", gap: 12, padding: "6px 0", borderBottom: "1px solid #E2D0B6" }}>
+    <div key={k} style={{ display: "flex", gap: 12, padding: "6px 0", borderBottom: "1px solid #E2D0B6" }}>
       <span style={{ minWidth: 200, color: "#976150" }}>{k}</span>
       <span>{v}</span>
     </div>
