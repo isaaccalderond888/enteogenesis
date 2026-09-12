@@ -173,6 +173,13 @@ function GraciasPage() {
             <span className="font-medium text-ink">3. Espera la entrevista.</span> No es un
             compromiso de lugar hasta que conversen.
           </li>
+          <li>
+            <span className="font-medium text-ink">4. Lee la preparación.</span>{" "}
+            <Link to="/preparacion" className="underline underline-offset-4 hover:text-ink">
+              Qué es este trabajo, quién no debería participar y cómo llegar
+            </Link>
+            . Vale la pena leerla antes de la entrevista.
+          </li>
         </ol>
 
         {holds.length > 0 ? (
