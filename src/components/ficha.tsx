@@ -125,7 +125,7 @@ export function FichaWizard() {
         /* ignore */
       }
       void navigate({ to: "/gracias" });
-    } catch {
+    } catch (err) {
       try {
         localStorage.setItem(FICHA_REMOTE_KEY, "");
         sessionStorage.setItem(FICHA_REMOTE_KEY, "");
@@ -133,8 +133,14 @@ export function FichaWizard() {
         /* ignore */
       }
       setSending(false);
+      // Show WHY it failed, not just that it did. A validation message names the
+      // field to fix; a database error is the detail whoever debugs the deploy
+      // needs. Swallowing both left the person staring at the same red box with
+      // nothing to act on.
+      const detail = err instanceof Error ? err.message.trim() : "";
       setError(
-        "No se pudo guardar en el expediente. Tu ficha sigue en este dispositivo — vuelve a intentar Cerrar ficha.",
+        "No se pudo guardar en el expediente. Tu ficha sigue en este dispositivo — vuelve a intentar Cerrar ficha." +
+          (detail ? ` (Detalle: ${detail})` : ""),
       );
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
