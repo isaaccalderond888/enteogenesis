@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { dbSource, getSql } from "@/lib/db";
+import { databaseUrlVar, dbSource, getSql } from "@/lib/db";
 
 type EnvStatus = { nombre: string; estado: string };
 
 type Report = {
+  usada: string | null;
   env: EnvStatus[];
   backend: string;
   conecta: boolean;
@@ -32,7 +33,14 @@ const report = createServerFn({ method: "GET" }).handler(async (): Promise<Repor
   };
 
   const base: Report = {
-    env: ["DATABASE_URL", "BETTER_AUTH_SECRET", "BETTER_AUTH_URL"].map(check),
+    usada: databaseUrlVar,
+    env: [
+      "DATABASE_URL",
+      "DATABASE_URL_UNPOOLED",
+      "POSTGRES_URL",
+      "BETTER_AUTH_SECRET",
+      "BETTER_AUTH_URL",
+    ].map(check),
     backend: dbSource,
     conecta: false,
     tablaFichas: false,
@@ -72,6 +80,7 @@ export const Route = createFileRoute("/diagnostico")({
 function Diagnostico() {
   const loaded = Route.useLoaderData();
   const r: Report = loaded ?? {
+    usada: null,
     env: [],
     backend: "?",
     conecta: false,
@@ -96,6 +105,7 @@ function Diagnostico() {
       <h2 style={{ color: "#976150", fontSize: 16, marginTop: 24 }}>Variables que recibe el servidor</h2>
       {r.env.map((e) => row(e.nombre, e.estado))}
       <h2 style={{ color: "#976150", fontSize: 16, marginTop: 24 }}>Base de datos</h2>
+      {row("Variable usada", r.usada ?? "ninguna")}
       {row("Base de datos", r.backend === "neon" ? "Neon (permanente)" : "PGLite (temporal — se borra)")}
       {row("Conecta", r.conecta ? "Sí" : "No")}
       {row("Tabla de fichas", r.tablaFichas ? "Existe" : "NO existe")}

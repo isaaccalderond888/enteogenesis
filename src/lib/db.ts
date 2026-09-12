@@ -3,12 +3,43 @@ import { pendingMigrations } from "../../scripts/migration-plan.mjs";
 /** Which database backend is active. */
 export type DbSource = "neon" | "pglite";
 
-// An empty/whitespace DATABASE_URL (an easy misconfig in deploy UIs) must mean
-// "unset" — otherwise production would silently run on the PGLite fallback.
-const rawDatabaseUrl =
-  typeof process !== "undefined" ? process.env.DATABASE_URL : undefined;
-const databaseUrl =
-  rawDatabaseUrl && rawDatabaseUrl.trim() ? rawDatabaseUrl : undefined;
+/**
+ * Connection-string variables, in preference order.
+ *
+ * `DATABASE_URL` is what this app documents, but the Neon-Vercel integration
+ * writes a SET of variables and does not always land the pooled one in every
+ * environment — a project can end up with `DATABASE_URL` on Development and
+ * only `DATABASE_URL_UNPOOLED` on Production, which silently drops production
+ * onto the PGLite fallback. Reading the alternates makes the app work with what
+ * the integration actually provisioned. Pooled entries come first: they are the
+ * right endpoint for short-lived serverless invocations.
+ */
+const DATABASE_URL_VARS = [
+  "DATABASE_URL",
+  "POSTGRES_URL",
+  "DATABASE_URL_UNPOOLED",
+  "POSTGRES_URL_NON_POOLING",
+] as const;
+
+/**
+ * First variable carrying a usable connection string. An empty/whitespace value
+ * (an easy misconfig in deploy UIs) counts as unset — otherwise production would
+ * silently run on the PGLite fallback.
+ */
+function pickDatabaseUrl(): { name: string; url: string } | undefined {
+  if (typeof process === "undefined") return undefined;
+  for (const name of DATABASE_URL_VARS) {
+    const raw = process.env[name];
+    if (raw && raw.trim()) return { name, url: raw.trim() };
+  }
+  return undefined;
+}
+
+const picked = pickDatabaseUrl();
+const databaseUrl = picked?.url;
+
+/** Which variable the connection came from — surfaced by /diagnostico. */
+export const databaseUrlVar = picked?.name ?? null;
 
 /**
  * Active backend: real **Neon** when `DATABASE_URL` is set (deployed / configured
