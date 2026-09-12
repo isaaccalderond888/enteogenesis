@@ -35,7 +35,8 @@ import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { getCookie } from "@tanstack/react-start/server";
 import { randomBytes } from "node:crypto";
 import { Pool } from "pg";
-import { ensureDbReady, getPglite, resolvedDatabaseUrl } from "../db";
+import { ensureDbReady, getPglite, getSql, resolvedDatabaseUrl } from "../db";
+import { SITE } from "../site";
 import { emailAndPasswordEnabled } from "./email-password";
 import { GATE_PROVIDER_ID, gateIdentitySessions } from "./gate-session.server";
 import { GROK_PROVIDERS } from "./providers";
@@ -187,6 +188,31 @@ const grokOAuthPlugin = authConfigured
     })
   : null;
 
+/**
+ * Nadie crea cuenta si no está autorizado de antemano.
+ *
+ * Antes cualquiera podía registrarse: la cuenta se creaba, el panel se abría
+ * vacío y sólo al pedir datos el servidor respondía "no autorizado". Además de
+ * confuso, dejaba cuentas ajenas en la base. La puerta se cierra aquí, antes de
+ * crear el usuario: sólo pasan los correos de SITE.adminEmails y los que el
+ * staff autorizó desde el panel (staff_invites).
+ */
+async function correoAutorizado(email: string): Promise<boolean> {
+  const e = email.trim().toLowerCase();
+  if (!e) return false;
+  if (SITE.adminEmails.map((x) => x.toLowerCase()).includes(e)) return true;
+  try {
+    const sql = await getSql();
+    const filas = await sql`select email from staff_invites where email = ${e} limit 1`;
+    if (filas.length) return true;
+    const ya = await sql`select user_id from staff where email = ${e} limit 1`;
+    return ya.length > 0;
+  } catch {
+    // Si la base no responde, no es momento de abrir la puerta.
+    return false;
+  }
+}
+
 export const auth = betterAuth({
   baseURL,
   // Deployed apps inject BETTER_AUTH_SECRET. Preview: process-stable secret on
@@ -244,6 +270,32 @@ export const auth = betterAuth({
       account_data: { name: "__Host-grok-auth.account_data" },
       dont_remember: { name: "__Host-grok-auth.dont_remember" },
     },
+  },
+
+  databaseHooks: {
+
+    user: {
+
+      create: {
+
+        before: async (user: { email?: string }) => {
+
+          if (!(await correoAutorizado(user.email ?? ""))) {
+
+            throw new Error(
+
+              "Este correo no está autorizado para el archivo interno. Pide a Isaac que lo autorice.",
+
+            );
+
+          }
+
+        },
+
+      },
+
+    },
+
   },
 
   socialProviders: googleNativeEnabled

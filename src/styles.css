@@ -79,4 +79,26 @@
     background: white;
     color: black;
   }
+  /* Una guia impresa se lee por secciones: partir un esquema o una tarjeta a la
+     mitad de la hoja la vuelve inservible para llenarla a mano. */
+  section,
+  svg,
+  figure {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  h1,
+  h2 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+  /* La foto de cabecera gasta una hoja entera de tinta sin aportar al papel. */
+  .photo {
+    display: none !important;
+  }
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.75em;
+    word-break: break-all;
+  }
 }

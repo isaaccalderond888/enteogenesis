@@ -131,12 +131,9 @@ async function requireStaff(userId: string) {
     }
   }
 
-  const n = await sql<{ n: number }>`select count(*)::int as n from staff`;
-  if (Number(n[0]?.n ?? 0) === 0) {
-    await sql`insert into staff (user_id, email) values (${userId}, ${email})`;
-    return;
-  }
-
+  // Sin regla de arranque: una tabla staff vacía significa que nadie entra, no
+  // que entre quien llegue primero. Ese atajo convirtió en staff a la primera
+  // cuenta que abrió el panel cuando la base se creó de cero al conectar Neon.
   throw new UnauthorizedError();
 }
 
