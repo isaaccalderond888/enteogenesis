@@ -1,3 +1,4 @@
+import { resolvedDatabaseUrl } from "../db";
 import { getRequest } from "@tanstack/react-start/server";
 import { gateIdentityEnabled } from "./gate-identity.server";
 import { auth, authConfigured } from "./server";
@@ -13,7 +14,10 @@ import { auth, authConfigured } from "./server";
  */
 
 /** True when a real database is configured server-side. */
-const databaseConfigured = Boolean(process.env.DATABASE_URL?.trim());
+// Same resolution as @/lib/db: the deploy may carry the connection string
+// under DATABASE_URL_UNPOOLED or POSTGRES_URL instead, and this gate must not
+// read "no database" from a name it simply did not check.
+const databaseConfigured = Boolean(resolvedDatabaseUrl);
 
 /** Re-export so callers can branch on it without importing `server.ts`. */
 export { authConfigured };

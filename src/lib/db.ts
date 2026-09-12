@@ -38,6 +38,15 @@ function pickDatabaseUrl(): { name: string; url: string } | undefined {
 const picked = pickDatabaseUrl();
 const databaseUrl = picked?.url;
 
+/**
+ * The connection string in use, from whichever variable carried it. Better Auth
+ * builds its OWN pool in `auth/server.ts` and must resolve the URL exactly the
+ * same way — reading only `DATABASE_URL` there left sign-in on the PGLite
+ * fallback (which does not exist in the Vercel runtime) while app data was
+ * already on Neon.
+ */
+export const resolvedDatabaseUrl = databaseUrl;
+
 /** Which variable the connection came from — surfaced by /diagnostico. */
 export const databaseUrlVar = picked?.name ?? null;
 
