@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Printer } from "lucide-react";
 import { useEffect, useState } from "react";
 import { PageShell } from "@/components/site-chrome";
-import { BODY_FIELDS } from "@/lib/application";
+import { BODY_FIELDS, generoTexto } from "@/lib/application";
 import { RedirectToSignIn, UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import {
@@ -106,7 +106,7 @@ function ExpedientePage() {
         <p className="mt-2 text-sm text-ink-soft">
           {[
             row.edad ? `${row.edad} años` : null,
-            d.sexo || null,
+            generoTexto(d) || null,
             d.ocupacion || null,
             row.retiro,
           ]

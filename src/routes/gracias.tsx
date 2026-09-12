@@ -12,6 +12,8 @@ import {
   recallFicha,
   retreatLabel,
   safetyFlags,
+  sexoTexto,
+  generoTexto,
   type Application,
 } from "@/lib/application";
 import { SITE, mailtoFicha } from "@/lib/site";
@@ -239,7 +241,8 @@ function GraciasPage() {
           <Block title="Identidad">
             <Row k="Nombre" v={data.nombreCompleto} />
             <Row k="Nacimiento" v={data.fechaNacimiento} />
-            <Row k="Sexo" v={data.sexo} />
+            <Row k="Sexo al nacer" v={sexoTexto(data)} />
+            <Row k="Identidad de género" v={generoTexto(data)} />
             <Row k="Ocupación" v={data.ocupacion} />
             <Row k="Teléfono" v={data.telefono} />
             <Row k="Email" v={data.email} />
