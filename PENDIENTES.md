@@ -32,7 +32,46 @@ Lo que implica:
 Trabajo de varias horas y con decisiones clínicas de por medio. Aplazado a
 propósito.
 
-## 2. Enviar el resultado por correo
+## 2. Lectura clínica de la ficha con IA
+
+La ficha guarda ~20 respuestas abiertas — camino con sustancias, práctica,
+terapia previa, nacimiento, antecedentes familiares, quién eres, sombra,
+miedos, razones — y hoy nadie las lee hasta la entrevista. Lo único automático
+es `safetyFlags`, que empareja palabras y produce falsos positivos (ver §8).
+
+Lo que se quiere: que al cerrar una ficha, la IA la lea **completa** con los
+marcos clínicos de Isaac y devuelva un **perfil** para el expediente —
+equivalente a lo que ya hace `landingPB` después de una escala, pero sobre el
+conjunto de la ficha en vez de sobre un puntaje.
+
+Qué tendría que producir, para que sea útil y no un resumen bonito:
+
+- Una lectura en prosa del caso, no una etiqueta.
+- Los temas que conviene abrir en la entrevista, con la cita textual de la
+  ficha que los sugiere — para que Isaac y Claudia puedan contrastar.
+- Contraindicaciones o interacciones que la persona menciona de pasada y un
+  emparejamiento de palabras no atrapa.
+- Lo que la ficha **no** dice y valdría preguntar.
+
+Decisiones antes de construirlo:
+
+- **Nunca se le muestra a quien aplica.** Es una lectura para el equipo, no un
+  dictamen devuelto a la persona; el criterio de `ScreeningTAPS.md` aplica aquí
+  sin ambigüedad.
+- **Nunca decide.** Ni acepta ni rechaza: alimenta la conversación. El estado
+  del expediente lo siguen moviendo Isaac y Claudia a mano.
+- Se guarda junto a la ficha y se puede regenerar, con la fecha y el modelo con
+  que se produjo, porque la lectura envejece cuando cambian los marcos.
+- Los marcos salen del vault (`03-Ciencia-Psicodelica`, `02-Neuroclínica`) y hay
+  que fijarlos como texto versionado en el repo, no reescribirlos cada vez.
+- Hace falta `ANTHROPIC_API_KEY` en Vercel. El costo por ficha es de centavos;
+  al volumen de un retiro es irrelevante.
+
+Relación con §8: si esta lectura funciona, `safetyFlags` deja de ser el
+tamizaje y pasa a ser sólo una red de seguridad para lo binario y verificable
+(embarazo, medicación contraindicada, declaración no aceptada).
+
+## 3. Enviar el resultado por correo
 
 Neon es sólo la base de datos: no manda correo. Hace falta un servicio aparte.
 
@@ -51,7 +90,7 @@ dominio verificado en Resend — probablemente ya verificado para el otro sitio.
 Decisión abierta: hoy manda a un solo terapeuta. ¿Va siempre a Isaac y a
 Claudia, o quien responde elige a quién?
 
-## 3. Interpretación con IA
+## 4. Interpretación con IA (escalas)
 
 Está escrita en `landingPB` (`app/api/interpret/route.ts`): SDK de Anthropic con
 streaming, y un prompt en primera persona — *"Eres Isaac Calderón,
@@ -66,13 +105,13 @@ Dos cosas antes de portarla:
   que la interpretación de IA *nunca* se devuelve al cliente; en `landingPB` sí
   se le muestra a quien responde. Falta decidir cuál aplica aquí.
 
-## 4. Revisión humana de los textos
+## 5. Revisión humana de los textos
 
 Claudia Saviñón e Isaura Maro revisan todo el texto del sitio y deciden **qué
 escalas se quedan**. Las 17 permanecen disponibles mientras tanto, sin enlaces,
 para poder mandarlas a revisión una por una.
 
-## 5. Línea de emergencia
+## 6. Línea de emergencia
 
 Cambiar el bloque de crisis para que aparezcan **primero los tres contactos**
 (Isaac, Claudia, Isaura) y la línea quede debajo como red de seguridad.
@@ -82,7 +121,7 @@ código original. **Sin verificar.** Antes de publicarla hay que marcar y
 confirmar que contesta; alternativas a evaluar: SAPTEL (Cruz Roja Mexicana) y la
 línea de apoyo psicológico de Locatel para CDMX.
 
-## 6. Deuda heredada de la plantilla
+## 7. Deuda heredada de la plantilla
 
 - 17 pruebas de `npm test` fallan. Ninguna es del sitio: verifican archivos de
   la plantilla (`SKILL.md`, `AGENTS.md`, metadatos de `grok.me`) que este repo
@@ -95,12 +134,12 @@ línea de apoyo psicológico de Locatel para CDMX.
   credenciales propias vía `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`: en
   cuanto existan, el botón reaparece solo.
 
-## 7. Calibración clínica del tamizaje de la ficha
+## 8. Calibración clínica del tamizaje de la ficha
 
 `safetyFlags` en `src/lib/application.ts` decide por palabras al inicio de la
 frase: sólo reconoce un "no" si la respuesta **empieza** con no / ninguno /
 nada. Una respuesta como *"Nunca he tenido nada"* levanta bandera igual.
 
 Eso produce falsos positivos, y un tamizaje que marca de más se deja de mirar.
-Es el argumento de fondo para sustituirlo por escalas puntuables, o por una
-lectura con los marcos clínicos del vault.
+Es el argumento de fondo para sustituirlo por escalas puntuables (§5) o por la
+lectura con marcos clínicos de §2.
