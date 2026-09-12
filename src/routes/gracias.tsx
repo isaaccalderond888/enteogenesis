@@ -15,6 +15,7 @@ import {
   type Application,
 } from "@/lib/application";
 import { SITE, mailtoFicha } from "@/lib/site";
+import { submitFicha } from "@/lib/fichas";
 
 export const Route = createFileRoute("/gracias")({ component: GraciasPage });
 
@@ -34,6 +35,8 @@ function GraciasPage() {
   const [data, setData] = useState<Application | null>(null);
   const [copied, setCopied] = useState(false);
   const [arrived, setArrived] = useState<boolean | null>(null);
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
 
   useEffect(() => {
     setData(readFicha());
@@ -51,6 +54,36 @@ function GraciasPage() {
   const mail = data
     ? mailtoFicha(`Ficha Enteogénesis · ${data.nombreCompleto}`, text.slice(0, 1800))
     : null;
+
+  const sendToExpediente = async () => {
+    if (!data) return;
+    setSending(true);
+    setSendError(null);
+    try {
+      let id = "";
+      let last: unknown;
+      for (let i = 0; i < 3; i += 1) {
+        try {
+          const res = await submitFicha({ data });
+          if (res?.id) {
+            id = res.id;
+            break;
+          }
+        } catch (err) {
+          last = err;
+          await new Promise((r) => setTimeout(r, 400 * (i + 1)));
+        }
+      }
+      if (!id) throw last instanceof Error ? last : new Error("No se pudo guardar.");
+      localStorage.setItem(FICHA_REMOTE_KEY, id);
+      sessionStorage.setItem(FICHA_REMOTE_KEY, id);
+      setArrived(true);
+    } catch {
+      setSendError("Todavía no llega. Conserva la copia e intenta de nuevo.");
+    } finally {
+      setSending(false);
+    }
+  };
 
   const download = () => {
     if (!data) return;
@@ -103,8 +136,21 @@ function GraciasPage() {
         <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
           {arrived
             ? `Isaac y Claudia ya tienen tu expediente. Conserva una copia en este dispositivo: si cambias de equipo, esta pantalla no la recupera.`
-            : `Tu ficha está en este dispositivo. No pudimos confirmar que llegara al expediente — descárgala y envíasela a ${SITE.facilitators}.`}
+            : `Tu ficha está en este dispositivo. Aún no confirmamos que llegara al expediente.`}
         </p>
+        {arrived ? null : (
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={() => void sendToExpediente()}
+              disabled={sending}
+              className="inline-flex h-11 items-center rounded-full bg-ink px-5 text-sm text-cream disabled:opacity-60"
+            >
+              {sending ? "Enviando…" : "Enviar al expediente"}
+            </button>
+            {sendError ? <p className="mt-2 text-sm text-hold">{sendError}</p> : null}
+          </div>
+        )}
         <p className="mt-2 text-sm text-muted">
           {retreatLabel(data)}
           {data.submittedAt ? ` · ${data.submittedAt}` : ""}

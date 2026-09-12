@@ -11,6 +11,7 @@ deploy-static
 .DS_Store
 .env
 .env.*
+!.env.example
 .nitro
 startup.sh
 AGENTS.md

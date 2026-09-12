@@ -20,6 +20,21 @@ import { submitFicha } from "@/lib/fichas";
 import { SITE } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
+async function persistFicha(submitted: Application): Promise<string> {
+  let last: unknown;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const res = await submitFicha({ data: submitted });
+      if (res?.id) return res.id;
+      last = new Error("Sin identificador");
+    } catch (err) {
+      last = err;
+    }
+    await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+  }
+  throw last instanceof Error ? last : new Error("No se pudo guardar.");
+}
+
 export function FichaWizard() {
   const navigate = useNavigate();
   const [data, setData] = useState<Application>(emptyApplication);
@@ -71,51 +86,58 @@ export function FichaWizard() {
       return;
     }
     if (step === STEPS.length - 1) {
-      const submitted: Application = {
-        ...data,
-        submittedAt: new Date().toLocaleString("es-MX", {
-          dateStyle: "long",
-          timeStyle: "short",
-        }),
-      };
-      const payload = JSON.stringify(submitted);
-      rememberFicha(submitted);
-      try {
-        localStorage.setItem(FICHA_KEY, payload);
-        sessionStorage.setItem(FICHA_KEY, payload);
-        localStorage.removeItem(DRAFT_KEY);
-      } catch {
-        try {
-          sessionStorage.setItem(FICHA_KEY, payload);
-        } catch {
-          /* in-memory still holds it for this tab */
-        }
-      }
-      setSending(true);
-      void submitFicha({ data: submitted })
-        .then((res) => {
-          try {
-            localStorage.setItem(FICHA_REMOTE_KEY, res.id);
-            sessionStorage.setItem(FICHA_REMOTE_KEY, res.id);
-          } catch {
-            /* ignore */
-          }
-        })
-        .catch(() => {
-          try {
-            localStorage.setItem(FICHA_REMOTE_KEY, "");
-            sessionStorage.setItem(FICHA_REMOTE_KEY, "");
-          } catch {
-            /* ignore */
-          }
-        })
-        .finally(() => {
-          void navigate({ to: "/gracias" });
-        });
+      void closeFicha();
       return;
     }
     setStep((s) => s + 1);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const closeFicha = async () => {
+    const submitted: Application = {
+      ...data,
+      submittedAt: new Date().toLocaleString("es-MX", {
+        dateStyle: "long",
+        timeStyle: "short",
+      }),
+    };
+    const payload = JSON.stringify(submitted);
+    rememberFicha(submitted);
+    try {
+      localStorage.setItem(FICHA_KEY, payload);
+      sessionStorage.setItem(FICHA_KEY, payload);
+      localStorage.removeItem(DRAFT_KEY);
+    } catch {
+      try {
+        sessionStorage.setItem(FICHA_KEY, payload);
+      } catch {
+        /* in-memory still holds it for this tab */
+      }
+    }
+    setSending(true);
+    setError(null);
+    try {
+      const id = await persistFicha(submitted);
+      try {
+        localStorage.setItem(FICHA_REMOTE_KEY, id);
+        sessionStorage.setItem(FICHA_REMOTE_KEY, id);
+      } catch {
+        /* ignore */
+      }
+      void navigate({ to: "/gracias" });
+    } catch {
+      try {
+        localStorage.setItem(FICHA_REMOTE_KEY, "");
+        sessionStorage.setItem(FICHA_REMOTE_KEY, "");
+      } catch {
+        /* ignore */
+      }
+      setSending(false);
+      setError(
+        "No se pudo guardar en el expediente. Tu ficha sigue en este dispositivo — vuelve a intentar Cerrar ficha.",
+      );
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   const goBack = () => {
@@ -230,8 +252,8 @@ function Marco({
         expediente abierto ni a investigación.
       </p>
       <p>
-        Tus respuestas se guardan en este dispositivo mientras avanzas. Al cerrar, también
-        llegan al expediente que leen Isaac y Claudia. Sigue siendo tuya: descárgala.
+        Tus respuestas se guardan en este dispositivo mientras avanzas. Al cerrar, llegan al
+        expediente que leen Isaac y Claudia. Conserva una copia: es tu respaldo.
       </p>
       <p>
         Este evento es una experiencia de crecimiento personal y no debería considerarse un

@@ -9,7 +9,7 @@ export const SITE = {
    * Vacío = la primera persona que entra por /adminlogin queda como staff.
    * Después, Isaac invita a Claudia desde el panel.
    */
-  adminEmails: [] as string[],
+  adminEmails: ["isaac.calderon.d@gmail.com"] as string[],
   crisis: {
     name: "Línea de la Vida",
     phone: "800 911 2000",
