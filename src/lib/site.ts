@@ -5,11 +5,21 @@ export const SITE = {
   /** Set when Isaac confirms the inbox. Empty = do not invent an address. */
   inbox: "",
   /**
-   * Correos que pueden abrir /expedientes.
-   * Vacío = la primera persona que entra por /adminlogin queda como staff.
-   * Después, Isaac invita a Claudia desde el panel.
+   * Única fuente de verdad de quién puede crear acceso al archivo interno.
+   *
+   * No hay regla de arranque: si esta lista está vacía nadie entra, en vez de
+   * que la primera persona en llegar se vuelva staff. Esa regla convirtió en
+   * staff a quien entró primero cuando la base se creó de cero al conectar Neon.
+   *
+   * Para sumar a alguien: agrégalo aquí, o autorízalo desde el panel (queda en
+   * staff_invites, que vale una sola vez).
    */
-  adminEmails: ["isaac.calderon.d@gmail.com"] as string[],
+  adminEmails: [
+    "isaac.calderon.d@gmail.com",
+    "isaac@cienciapsicodelica.com",
+    "isaura.maro@gmail.com",
+    "clausavinon@gmail.com",
+  ] as string[],
   crisis: {
     name: "Línea de la Vida",
     phone: "800 911 2000",
