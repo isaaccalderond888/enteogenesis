@@ -5,6 +5,25 @@ import { RedirectToSignIn, UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { inviteStaff, listFichas, listStaff, STATUSES, type FichaListItem } from "@/lib/fichas";
 
+/**
+ * Aviso que la persona autorizada necesita recibir. No hay envío de correo en el
+ * proyecto, así que autorizar solo abre la puerta: sin este mensaje, quien fue
+ * autorizada nunca se entera. Incluye la advertencia del correo exacto, que es
+ * el motivo por el que un acceso rebota.
+ */
+function mensajeInvitacion(email: string): string {
+  return [
+    "Ya tienes acceso al archivo de admisión de Enteogénesis.",
+    "",
+    "1. Entra a https://enteogenesis.app/adminlogin",
+    '2. Dale a "Primera vez: crear acceso"',
+    "3. Llena tu nombre, tu correo y una contraseña que inventes",
+    "",
+    `Usa exactamente este correo: ${email}`,
+    "Con cualquier otro no te va a dejar entrar.",
+  ].join("\n");
+}
+
 export const Route = createFileRoute("/expedientes")({
   head: () => ({
     meta: [
@@ -33,6 +52,8 @@ function ExpedientesPage() {
   const [status, setStatus] = useState<string>("todas");
   const [invite, setInvite] = useState("");
   const [inviteMsg, setInviteMsg] = useState<string | null>(null);
+  const [autorizado, setAutorizado] = useState<string | null>(null);
+  const [copiado, setCopiado] = useState(false);
   const [staffInfo, setStaffInfo] = useState<{ staff: string[]; invites: string[] } | null>(null);
 
   useEffect(() => {
@@ -193,8 +214,14 @@ function ExpedientesPage() {
             {(staffInfo?.staff.length ? staffInfo.staff.join(" · ") : user.primaryEmail) || "Tu cuenta"}
           </p>
           {staffInfo?.invites.length ? (
-            <p className="mt-2 text-xs text-muted">Invitaciones pendientes: {staffInfo.invites.join(", ")}</p>
+            <p className="mt-2 text-xs text-muted">
+              Autorizadas, sin entrar todavía: {staffInfo.invites.join(", ")}
+            </p>
           ) : null}
+          <p className="mt-3 text-xs leading-relaxed text-muted">
+            Autorizar abre la puerta a ese correo. El sitio no manda ningún aviso: el mensaje se
+            lo envías tú por WhatsApp o correo.
+          </p>
           <form
             className="mt-4 flex flex-col gap-2 sm:flex-row"
             onSubmit={(e) => {
@@ -205,11 +232,13 @@ function ExpedientesPage() {
               void inviteStaff({ data: email })
                 .then(() => {
                   setInvite("");
-                  setInviteMsg(`Invitación lista para ${email}.`);
+                  setInviteMsg(null);
+                  setAutorizado(email);
+                  setCopiado(false);
                   return listStaff().then(setStaffInfo);
                 })
                 .catch((err: unknown) => {
-                  setInviteMsg(err instanceof Error ? err.message : "No se pudo invitar.");
+                  setInviteMsg(err instanceof Error ? err.message : "No se pudo autorizar.");
                 });
             }}
           >
@@ -217,17 +246,39 @@ function ExpedientesPage() {
               type="email"
               value={invite}
               onChange={(e) => setInvite(e.target.value)}
-              placeholder="Correo de Claudia o Isaac"
+              placeholder="Correo de quien va a leer"
               className="h-11 flex-1 rounded-full border border-line bg-cream px-4 text-sm"
             />
             <button
               type="submit"
               className="inline-flex h-11 items-center justify-center rounded-full border border-ink px-5 text-sm"
             >
-              Invitar
+              Autorizar
             </button>
           </form>
-          {inviteMsg ? <p className="mt-2 text-xs text-muted">{inviteMsg}</p> : null}
+          {inviteMsg ? <p className="mt-2 text-xs text-clay">{inviteMsg}</p> : null}
+          {autorizado ? (
+            <div className="mt-4 rounded-2xl border border-line bg-cream p-4">
+              <p className="text-xs font-bold tracking-[0.18em] text-clay">
+                FALTA AVISARLE A {autorizado.toUpperCase()}
+              </p>
+              <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-ink-soft">
+                {mensajeInvitacion(autorizado)}
+              </p>
+              <button
+                type="button"
+                className="mt-3 inline-flex h-10 items-center rounded-full border border-ink px-4 text-sm"
+                onClick={() => {
+                  void navigator.clipboard
+                    .writeText(mensajeInvitacion(autorizado))
+                    .then(() => setCopiado(true))
+                    .catch(() => setCopiado(false));
+                }}
+              >
+                {copiado ? "Copiado" : "Copiar mensaje"}
+              </button>
+            </div>
+          ) : null}
         </section>
       </div>
     </PageShell>
