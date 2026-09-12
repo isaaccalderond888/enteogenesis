@@ -2,7 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { dbSource, getSql } from "@/lib/db";
 
+type EnvStatus = { nombre: string; estado: string };
+
 type Report = {
+  env: EnvStatus[];
   backend: string;
   conecta: boolean;
   tablaFichas: boolean;
@@ -18,7 +21,18 @@ type Report = {
  * answers in one page what otherwise takes a round trip through build logs.
  */
 const report = createServerFn({ method: "GET" }).handler(async (): Promise<Report> => {
+  // Names and presence only — never a value. This is what separates "the
+  // variable is missing" from "the variable is there but the app cannot use it",
+  // which build logs alone do not distinguish.
+  const check = (nombre: string): EnvStatus => {
+    const raw = process.env[nombre];
+    if (raw === undefined) return { nombre, estado: "AUSENTE — Vercel no la entrega" };
+    if (!raw.trim()) return { nombre, estado: "VACIA — existe pero sin valor" };
+    return { nombre, estado: `presente (${raw.trim().length} caracteres)` };
+  };
+
   const base: Report = {
+    env: ["DATABASE_URL", "BETTER_AUTH_SECRET", "BETTER_AUTH_URL"].map(check),
     backend: dbSource,
     conecta: false,
     tablaFichas: false,
@@ -58,6 +72,7 @@ export const Route = createFileRoute("/diagnostico")({
 function Diagnostico() {
   const loaded = Route.useLoaderData();
   const r: Report = loaded ?? {
+    env: [],
     backend: "?",
     conecta: false,
     tablaFichas: false,
@@ -78,6 +93,9 @@ function Diagnostico() {
       <p style={{ fontSize: 20, fontWeight: 700, color: ok ? "#108474" : "#976150" }}>
         {ok ? "Todo en orden — las fichas se guardan." : "Hay un problema. El detalle está abajo."}
       </p>
+      <h2 style={{ color: "#976150", fontSize: 16, marginTop: 24 }}>Variables que recibe el servidor</h2>
+      {r.env.map((e) => row(e.nombre, e.estado))}
+      <h2 style={{ color: "#976150", fontSize: 16, marginTop: 24 }}>Base de datos</h2>
       {row("Base de datos", r.backend === "neon" ? "Neon (permanente)" : "PGLite (temporal — se borra)")}
       {row("Conecta", r.conecta ? "Sí" : "No")}
       {row("Tabla de fichas", r.tablaFichas ? "Existe" : "NO existe")}
