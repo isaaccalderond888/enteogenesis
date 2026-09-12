@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Printer } from "lucide-react";
 import { PageShell } from "@/components/site-chrome";
 import { SITE } from "@/lib/site";
 
@@ -76,6 +77,16 @@ const BLOQUES: Bloque[] = [
   },
 ];
 
+/** Etiqueta partida en lineas cortas para que quepa dentro de cada gajo. */
+const HEX = [
+  ["Mente"],
+  ["Cuerpo"],
+  ["Espíritu", "y sentido"],
+  ["Relaciones"],
+  ["Vida", "cotidiana"],
+  ["Naturaleza", "y contexto"],
+];
+
 const TERRITORIOS = [
   { t: "Mente", q: "¿Qué creencias se flexibilizaron? ¿Qué interpretación necesita permanecer provisional? ¿Qué hechos puedo verificar?" },
   { t: "Cuerpo", q: "¿Cómo están mi sueño, apetito, energía, tensión y sensación de seguridad? ¿Qué práctica corporal me ayuda a volver al presente?" },
@@ -116,6 +127,94 @@ const RECURSOS = [
   { n: "NCCIH", d: "Información pública de seguridad sobre psilocibina.", u: "https://www.nccih.nih.gov/health/psilocybin-for-mental-health-and-addiction-what-you-need-to-know" },
 ];
 
+/**
+ * Rueda de los seis territorios: un hexagono partido en seis gajos, uno por
+ * dominio, pensado para imprimirse y llenarse a mano. Sustituye a los recuadros
+ * vacios, que en pantalla parecian campos de formulario y en papel no invitaban
+ * a escribir. SVG en linea para que no dependa de una imagen externa y salga
+ * nitido a cualquier tamano de impresion.
+ */
+function RuedaTerritorios() {
+  const cx = 300;
+  const cy = 272;
+  const r = 232;
+  const punto = (i: number) => {
+    const a = ((-90 + 60 * i) * Math.PI) / 180;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)] as const;
+  };
+  return (
+    <svg
+      viewBox="0 0 600 560"
+      role="img"
+      aria-label="Rueda de los seis territorios de integración"
+      className="mt-6 w-full"
+    >
+      {HEX.map((lineas, i) => {
+        const [x1, y1] = punto(i);
+        const [x2, y2] = punto((i + 1) % 6);
+        // Centroide del gajo, empujado hacia afuera para dejar libre el centro.
+        const mx = (cx + x1 + x2) / 3;
+        const my = (cy + y1 + y2) / 3;
+        const lx = cx + (mx - cx) * 1.32;
+        const ly = cy + (my - cy) * 1.32;
+        return (
+          <g key={lineas.join(" ")}>
+            <polygon
+              points={`${cx},${cy} ${x1},${y1} ${x2},${y2}`}
+              fill={i % 2 === 0 ? "#E2D0B6" : "#F2EEE5"}
+              fillOpacity="0.45"
+              stroke="#976150"
+              strokeWidth="1.5"
+            />
+            {lineas.map((linea, j) => (
+              <text
+                key={linea}
+                x={lx}
+                y={ly + (j - (lineas.length - 1) / 2) * 17}
+                textAnchor="middle"
+                fontSize="15"
+                fill="#3A332E"
+                fontWeight="600"
+              >
+                {linea}
+              </text>
+            ))}
+          </g>
+        );
+      })}
+      <circle cx={cx} cy={cy} r="52" fill="#FFFFFF" stroke="#976150" strokeWidth="1.5" />
+      <text x={cx} y={cy - 4} textAnchor="middle" fontSize="13" fill="#976150" fontWeight="700">
+        LO QUE
+      </text>
+      <text x={cx} y={cy + 14} textAnchor="middle" fontSize="13" fill="#976150" fontWeight="700">
+        VIVÍ
+      </text>
+    </svg>
+  );
+}
+
+/**
+ * Hoja del mapa de integración: seis celdas con renglones, para escribir encima.
+ * Los renglones son lo que distingue una hoja de trabajo de un formulario web.
+ */
+function HojaMapa() {
+  return (
+    <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {MAPA.map((x, i) => (
+        <div key={x} className="rounded-2xl border border-clay/40 bg-white/50 p-4">
+          <p className="text-xs tracking-[0.14em] text-clay">{String(i + 1).padStart(2, "0")}</p>
+          <p className="mt-1 text-sm font-medium leading-snug text-ink">{x}</p>
+          <div className="mt-3 space-y-3">
+            {[0, 1, 2].map((n) => (
+              <div key={n} className="h-px bg-clay/25" />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function IntegracionPage() {
   return (
     <PageShell>
@@ -136,6 +235,15 @@ function IntegracionPage() {
           ocurra pueda ser sostenido, escuchado e integrado. Esta guía acompaña los días y las
           semanas posteriores. No sustituye atención médica, psicológica o psiquiátrica.
         </p>
+
+        <button
+          type="button"
+          onClick={() => window.print()}
+          className="no-print mt-6 inline-flex h-11 items-center gap-2 rounded-full border border-line px-5 text-sm hover:border-ink/40"
+        >
+          <Printer className="size-4" />
+          Imprimir o guardar como PDF
+        </button>
 
         <div className="mt-12 space-y-12">
           {BLOQUES.map((b) => (
@@ -179,7 +287,11 @@ function IntegracionPage() {
             <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
               Úsalos como preguntas, no como una lista que debas completar.
             </p>
-            <div className="mt-6 space-y-5">
+            <RuedaTerritorios />
+            <p className="mt-2 text-xs text-muted">
+              Imprime esta página y escribe dentro de cada gajo. No hace falta llenarlos todos.
+            </p>
+            <div className="mt-8 space-y-5">
               {TERRITORIOS.map((x) => (
                 <div key={x.t} className="rounded-2xl border border-line bg-sand/30 p-5">
                   <p className="text-sm font-medium text-ink">{x.t}</p>
@@ -196,14 +308,7 @@ function IntegracionPage() {
               Complétalo varias veces: al día siguiente, una semana después y cuando cambie tu
               comprensión. Imprime esta página si quieres llenarlo a mano.
             </p>
-            <div className="mt-6 space-y-6">
-              {MAPA.map((x) => (
-                <div key={x}>
-                  <p className="text-sm text-ink">{x}</p>
-                  <div className="mt-2 h-12 rounded-xl border border-dashed border-line bg-white/40" />
-                </div>
-              ))}
-            </div>
+            <HojaMapa />
           </section>
 
           <section>
