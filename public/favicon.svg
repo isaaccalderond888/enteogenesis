@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Terrasana">
+  <rect width="32" height="32" rx="7" fill="#F2EEE5"/>
+  <g fill="#976150">
+  <path d="M 0 -6.15 C 2.70 -3.38 2.70 1.11 0 6.15 C -2.70 1.11 -2.70 -3.38 0 -6.15 Z" transform="translate(23.83 18.68) rotate(104.9)"/>
+  <path d="M 0 -6.02 C 2.64 -3.31 2.64 1.08 0 6.02 C -2.64 1.08 -2.64 -3.31 0 -6.02 Z" transform="translate(19.65 22.68) rotate(145.2)"/>
+  <path d="M 0 -5.88 C 2.58 -3.24 2.58 1.06 0 5.88 C -2.58 1.06 -2.58 -3.24 0 -5.88 Z" transform="translate(14.12 23.00) rotate(185.5)"/>
+  <path d="M 0 -5.75 C 2.53 -3.16 2.53 1.04 0 5.75 C -2.53 1.04 -2.53 -3.16 0 -5.75 Z" transform="translate(9.88 19.80) rotate(225.8)"/>
+  <path d="M 0 -5.62 C 2.47 -3.09 2.47 1.01 0 5.62 C -2.47 1.01 -2.47 -3.09 0 -5.62 Z" transform="translate(8.79 14.84) rotate(266.1)"/>
+  <path d="M 0 -5.49 C 2.41 -3.02 2.41 0.99 0 5.49 C -2.41 0.99 -2.41 -3.02 0 -5.49 Z" transform="translate(11.06 10.57) rotate(306.3)"/>
+  <path d="M 0 -5.35 C 2.35 -2.94 2.35 0.96 0 5.35 C -2.35 0.96 -2.35 -2.94 0 -5.35 Z" transform="translate(15.34 8.88) rotate(346.6)"/>
+  <path d="M 0 -5.22 C 2.29 -2.87 2.29 0.94 0 5.22 C -2.29 0.94 -2.29 -2.87 0 -5.22 Z" transform="translate(19.48 10.30) rotate(386.9)"/>
+  <path d="M 0 -5.09 C 2.23 -2.80 2.23 0.92 0 5.09 C -2.23 0.92 -2.23 -2.80 0 -5.09 Z" transform="translate(21.57 13.87) rotate(427.2)"/>
+  <path d="M 0 -4.95 C 2.18 -2.72 2.18 0.89 0 4.95 C -2.18 0.89 -2.18 -2.72 0 -4.95 Z" transform="translate(20.89 17.71) rotate(467.5)"/>
+  <path d="M 0 -4.82 C 2.12 -2.65 2.12 0.87 0 4.82 C -2.12 0.87 -2.12 -2.65 0 -4.82 Z" transform="translate(18.06 20.03) rotate(507.8)"/>
+  <path d="M 0 -4.69 C 2.06 -2.58 2.06 0.84 0 4.69 C -2.06 0.84 -2.06 -2.58 0 -4.69 Z" transform="translate(14.63 19.95) rotate(548.1)"/>
+  <path d="M 0 -4.56 C 2.00 -2.51 2.00 0.82 0 4.56 C -2.00 0.82 -2.00 -2.51 0 -4.56 Z" transform="translate(12.25 17.82) rotate(588.3)"/>
+  <path d="M 0 -4.42 C 1.94 -2.43 1.94 0.80 0 4.42 C -1.94 0.80 -1.94 -2.43 0 -4.42 Z" transform="translate(11.88 14.88) rotate(628.6)"/>
+  <path d="M 0 -4.29 C 1.88 -2.36 1.88 0.77 0 4.29 C -1.88 0.77 -1.88 -2.36 0 -4.29 Z" transform="translate(13.38 12.60) rotate(668.9)"/>
+  <path d="M 0 -4.16 C 1.83 -2.29 1.83 0.75 0 4.16 C -1.83 0.75 -1.83 -2.29 0 -4.16 Z" transform="translate(15.79 11.94) rotate(709.2)"/>
+  <path d="M 0 -4.02 C 1.77 -2.21 1.77 0.72 0 4.02 C -1.77 0.72 -1.77 -2.21 0 -4.02 Z" transform="translate(17.83 12.91) rotate(749.5)"/>
+  <path d="M 0 -3.89 C 1.71 -2.14 1.71 0.70 0 3.89 C -1.71 0.70 -1.71 -2.14 0 -3.89 Z" transform="translate(18.63 14.77) rotate(789.8)"/>
+  <path d="M 0 -3.76 C 1.65 -2.07 1.65 0.68 0 3.76 C -1.65 0.68 -1.65 -2.07 0 -3.76 Z" transform="translate(18.06 16.48) rotate(830.1)"/>
+  <path d="M 0 -3.63 C 1.59 -1.99 1.59 0.65 0 3.63 C -1.59 0.65 -1.59 -1.99 0 -3.63 Z" transform="translate(16.71 17.26) rotate(870.3)"/>
+  <path d="M 0 -3.49 C 1.53 -1.92 1.53 0.63 0 3.49 C -1.53 0.63 -1.53 -1.92 0 -3.49 Z" transform="translate(15.41 16.97) rotate(910.6)"/>
+  <path d="M 0 -3.36 C 1.48 -1.85 1.48 0.60 0 3.36 C -1.48 0.60 -1.48 -1.85 0 -3.36 Z" transform="translate(14.78 16.06) rotate(950.9)"/>
+    <circle cx="16" cy="16" r="1.35"/>
+  </g>
+</svg>

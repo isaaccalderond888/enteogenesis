@@ -1,0 +1,308 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Printer } from "lucide-react";
+import { useEffect, useState } from "react";
+import { PageShell } from "@/components/site-chrome";
+import { BODY_FIELDS } from "@/lib/application";
+import { RedirectToSignIn, UserButton } from "@/lib/auth/gates";
+import { useCurrentUserState } from "@/lib/auth/use-current-user";
+import {
+  getFicha,
+  STATUSES,
+  updateFichaNotes,
+  updateFichaStatus,
+  type FichaDetail,
+  type FichaStatus,
+} from "@/lib/fichas";
+
+export const Route = createFileRoute("/expedientes_/$id")({
+  head: () => ({
+    meta: [
+      { title: "Expediente · Terrasana" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
+  component: ExpedientePage,
+});
+
+function ExpedientePage() {
+  const { id } = Route.useParams();
+  const { user, isPending } = useCurrentUserState();
+  const [row, setRow] = useState<FichaDetail | null | undefined>(undefined);
+  const [notes, setNotes] = useState("");
+  const [saved, setSaved] = useState(false);
+  const [noteError, setNoteError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isPending || !user) return;
+    let cancelled = false;
+    getFicha({ data: id })
+      .then((data) => {
+        if (cancelled) return;
+        setRow(data);
+        setNotes(data?.notes ?? "");
+      })
+      .catch(() => {
+        if (!cancelled) setRow(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [id, isPending, user]);
+
+  if (isPending) {
+    return (
+      <PageShell internal footer={false}>
+        <div className="mx-auto max-w-2xl px-4 py-24 text-sm text-muted">Cargando expediente…</div>
+      </PageShell>
+    );
+  }
+  if (!user) return <RedirectToSignIn />;
+  if (row === undefined) {
+    return (
+      <PageShell internal footer={false}>
+        <div className="mx-auto max-w-2xl px-4 py-24 text-sm text-muted">Abriendo…</div>
+      </PageShell>
+    );
+  }
+  if (!row) {
+    return (
+      <PageShell internal footer={false}>
+        <div className="mx-auto max-w-2xl px-4 py-16">
+          <p className="text-sm text-muted">No hay un expediente con esa clave.</p>
+          <Link to="/expedientes" className="mt-4 inline-block text-sm text-clay">
+            Volver al archivo
+          </Link>
+        </div>
+      </PageShell>
+    );
+  }
+
+  const d = row.payload;
+  const holds = row.flags.filter((f) => f.level === "hold");
+  const reviews = row.flags.filter((f) => f.level === "review");
+
+  return (
+    <PageShell internal footer={false}>
+      <article className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
+        <div className="no-print flex items-center justify-between gap-3">
+          <Link to="/expedientes" className="text-sm text-muted hover:text-ink">
+            ← Archivo
+          </Link>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="inline-flex h-10 items-center gap-1.5 rounded-full border border-line px-3 text-xs text-ink-soft hover:border-ink/40"
+            >
+              <Printer className="h-3.5 w-3.5" />
+              Imprimir
+            </button>
+            <UserButton />
+          </div>
+        </div>
+
+        <p className="eyebrow mt-8">Expediente</p>
+        <h1 className="mt-2 text-3xl font-normal">{row.nombre}</h1>
+        <p className="mt-2 text-sm text-ink-soft">
+          {[
+            row.edad ? `${row.edad} años` : null,
+            d.sexo || null,
+            d.ocupacion || null,
+            row.retiro,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        </p>
+        {row.createdAt ? (
+          <p className="mt-1 text-xs text-muted">
+            Llegó {new Date(row.createdAt).toLocaleString("es-MX")}
+          </p>
+        ) : null}
+
+        <section className="mt-8 rounded-3xl border border-sand bg-sand/40 px-5 py-4">
+          <p className="eyebrow">Para la entrevista</p>
+          <p className="mt-3 text-sm leading-relaxed text-ink">{row.lectura}</p>
+          <p className="mt-2 text-xs text-muted">
+            Lectura automática. No es un diagnóstico ni un rechazo — ustedes deciden en conversación.
+          </p>
+        </section>
+
+        <div className="no-print mt-6 flex flex-wrap items-center gap-3">
+          <label className="text-sm text-ink-soft">
+            Estado
+            <select
+              className="ml-2 h-11 rounded-full border border-line bg-paper px-3 text-sm"
+              value={row.status}
+              onChange={(e) => {
+                const status = e.target.value as FichaStatus;
+                void updateFichaStatus({ data: { id: row.id, status } }).then(() =>
+                  setRow({ ...row, status }),
+                );
+              }}
+            >
+              {STATUSES.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        {holds.length || reviews.length ? (
+          <ul className="mt-6 space-y-3">
+            {holds.map((f) => (
+              <li key={`h-${f.label}`} className="rounded-2xl border border-hold/20 bg-hold/5 px-4 py-3">
+                <p className="text-[11px] font-bold tracking-[0.16em] text-hold uppercase">Pausa · {f.label}</p>
+                {f.detail ? <p className="mt-1 text-sm text-ink">{f.detail}</p> : null}
+              </li>
+            ))}
+            {reviews.map((f) => (
+              <li key={`r-${f.label}`} className="rounded-2xl border border-review/20 bg-review/5 px-4 py-3">
+                <p className="text-[11px] font-bold tracking-[0.16em] text-review uppercase">
+                  Revisar · {f.label}
+                </p>
+                {f.detail ? <p className="mt-1 text-sm text-ink">{f.detail}</p> : null}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-6 text-sm text-moss">Sin pausas ni banderas automáticas.</p>
+        )}
+
+        <section className="mt-8 grid gap-3 sm:grid-cols-2">
+          <a
+            href={`tel:${d.telefono.replace(/\s+/g, "")}`}
+            className="rounded-2xl border border-line bg-paper px-4 py-3 text-sm hover:border-clay"
+          >
+            <p className="text-xs text-muted">Teléfono</p>
+            <p className="mt-1 text-ink">{d.telefono}</p>
+          </a>
+          <a
+            href={`mailto:${d.email}`}
+            className="rounded-2xl border border-line bg-paper px-4 py-3 text-sm hover:border-clay"
+          >
+            <p className="text-xs text-muted">Correo</p>
+            <p className="mt-1 break-all text-ink">{d.email}</p>
+          </a>
+          {d.emergencia ? (
+            <div className="rounded-2xl border border-line bg-paper px-4 py-3 text-sm sm:col-span-2">
+              <p className="text-xs text-muted">Emergencia</p>
+              <p className="mt-1 text-ink">{d.emergencia}</p>
+            </div>
+          ) : null}
+        </section>
+
+        <label className="no-print mt-8 block text-sm">
+          Notas de Isaac y Claudia
+          <textarea
+            className="mt-2 min-h-28 w-full rounded-2xl border border-line bg-paper px-3.5 py-3 text-[15px] outline-none focus:border-clay"
+            value={notes}
+            onChange={(e) => {
+              setNotes(e.target.value);
+              setSaved(false);
+              setNoteError(null);
+            }}
+            placeholder="Lo que quieran recordar para la entrevista…"
+          />
+        </label>
+        <button
+          type="button"
+          className="no-print mt-3 inline-flex h-11 items-center rounded-full bg-ink px-5 text-sm text-cream"
+          onClick={() => {
+            setNoteError(null);
+            void updateFichaNotes({ data: { id: row.id, notes } })
+              .then(() => setSaved(true))
+              .catch((err: unknown) => {
+                setNoteError(err instanceof Error ? err.message : "No se pudieron guardar.");
+              });
+          }}
+        >
+          {saved ? "Notas guardadas" : "Guardar notas"}
+        </button>
+        {noteError ? <p className="mt-2 text-xs text-hold">{noteError}</p> : null}
+        {notes.trim() ? (
+          <p className="mt-4 hidden whitespace-pre-wrap text-sm print:block">
+            <span className="eyebrow block">Notas</span>
+            {notes}
+          </p>
+        ) : null}
+
+        <section className="mt-12 space-y-6 text-sm leading-relaxed">
+          <Block title="Intención">
+            <Row k="Quién eres" v={d.quienEres} />
+            <Row k="Sombra" v={d.sombra} />
+            <Row k="Miedos" v={d.miedos} />
+            <Row k="Razones" v={d.razones} />
+          </Block>
+          <Block title="Camino">
+            <Row
+              k="Participación previa"
+              v={
+                d.participadoPsicodelicos === "si"
+                  ? `Sí${d.participadoContexto ? ` — ${d.participadoContexto}` : ""}`
+                  : d.participadoPsicodelicos === "no"
+                    ? `No${d.participadoContexto ? ` — ${d.participadoContexto}` : ""}`
+                    : d.participadoContexto
+              }
+            />
+            <Row k="Historial de sustancias" v={d.sustanciasHistorial} />
+            <Row k="Consumo recreativo" v={d.consumeRecreativo} />
+            <Row k="Práctica espiritual" v={d.practicaEspiritual} />
+            <Row k="Maestro o guía" v={d.maestroGuia} />
+          </Block>
+          <Block title="Historia interior">
+            <Row k="Terapia" v={d.terapia} />
+            <Row k="Mala experiencia" v={d.malaExperiencia} />
+            <Row k="Emergencia espiritual" v={d.emergenciaEspiritual} />
+            <Row k="Nacimiento" v={d.nacimiento} />
+          </Block>
+          <Block title="Salud mental">
+            <Row k="Enfermedad / tratamiento" v={d.enfermedadMental} />
+            <Row k="Familia" v={d.antecedentesFamiliares} />
+          </Block>
+          <Block title="Cuerpo">
+            {BODY_FIELDS.map((f) => (
+              <Row
+                key={f.key}
+                k={f.question}
+                v={`${d[f.key].respuesta === "si" ? "Sí" : "No"}${d[f.key].detalle ? ` — ${d[f.key].detalle}` : ""}`}
+              />
+            ))}
+            <Row k="Otro padecimiento" v={d.otroPadecimiento} />
+            <Row k="Cambio o pérdida" v={d.cambioDramatico} />
+            <Row k="Medicamentos" v={d.medicamentos} />
+          </Block>
+          <Block title="Más contacto">
+            <Row k="Dirección" v={d.direccion} />
+            <Row k="Cómo se enteró" v={d.comoSeEntero} />
+            <Row k="Nacimiento (fecha)" v={d.fechaNacimiento} />
+          </Block>
+          <Block title="Declaración">
+            <Row k="Acepta" v={d.declara === "si" ? "Sí" : d.declara === "no" ? "No" : d.declara} />
+            <Row k="Firma" v={d.firma} />
+          </Block>
+        </section>
+      </article>
+    </PageShell>
+  );
+}
+
+function Block({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section>
+      <h2 className="eyebrow">{title}</h2>
+      <dl className="mt-3 space-y-3">{children}</dl>
+    </section>
+  );
+}
+
+function Row({ k, v }: { k: string; v: string }) {
+  if (!v?.trim()) return null;
+  return (
+    <div>
+      <dt className="text-xs tracking-[0.08em] text-muted">{k}</dt>
+      <dd className="mt-1 whitespace-pre-wrap text-ink">{v}</dd>
+    </div>
+  );
+}

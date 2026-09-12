@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Lato", ui-sans-serif, system-ui, sans-serif;
+  --color-cream: #f2eee5;
+  --color-paper: #faf7f1;
+  --color-sand: #e2d0b6;
+  --color-clay: #976150;
+  --color-clay-deep: #7a4c3e;
+  --color-sage: #95af92;
+  --color-moss: #108474;
+  --color-ink: #1a1814;
+  --color-ink-soft: #3d3933;
+  --color-muted: #6b645c;
+  --color-line: #d9d0c4;
+  --color-taupe: #8f806a;
+  --color-hold: #8b0000;
+  --color-review: #9a6b2f;
+  --shadow-border:
+    0px 0px 0px 1px rgba(26, 24, 20, 0.06),
+    0px 1px 2px -1px rgba(26, 24, 20, 0.06),
+    0px 8px 24px -12px rgba(151, 97, 80, 0.18);
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html,
+  body,
+  #app {
+    min-height: 100%;
+    background: var(--color-cream);
+    color: var(--color-ink);
+  }
+
+  body {
+    font-family: var(--font-sans);
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  img.photo {
+    outline: 1px solid rgba(26, 24, 20, 0.1);
+    outline-offset: -1px;
+  }
+}
+
+@utility eyebrow {
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--color-clay);
+}
+
+@media print {
+  header,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white;
+    color: black;
+  }
+}

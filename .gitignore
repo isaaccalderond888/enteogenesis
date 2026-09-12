@@ -1,0 +1,27 @@
+node_modules
+.output
+.vercel
+dist
+.tanstack
+screenshots
+artifacts
+attachments
+deploy-static
+*.log
+.DS_Store
+.env
+.env.*
+.nitro
+startup.sh
+AGENTS.md
+.grok/*
+!.grok/app-env.json
+
+# Originales pesados — el sitio usa las versiones .jpg
+public/images/retiro-naturaleza.png
+public/images/enteogenesis.png
+public/images/enteogenesis-2.png
+public/images/enteogenesis-3.png
+public/images/volcanes.png
+.project_id
+.node_modules.lock
