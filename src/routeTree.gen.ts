@@ -13,11 +13,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminloginRouteImport } from './routes/adminlogin'
 import { Route as AplicarRouteImport } from './routes/aplicar'
 import { Route as DiagnosticoRouteImport } from './routes/diagnostico'
+import { Route as EvaluacionesRouteImport } from './routes/evaluaciones'
 import { Route as ExpedientesRouteImport } from './routes/expedientes'
 import { Route as GraciasRouteImport } from './routes/gracias'
 import { Route as IntegracionRouteImport } from './routes/integracion'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PreparacionRouteImport } from './routes/preparacion'
+import { Route as EvaluacionesIdRouteImport } from './routes/evaluaciones_.$id'
 import { Route as ExpedientesIdRouteImport } from './routes/expedientes_.$id'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
@@ -39,6 +41,11 @@ const AplicarRoute = AplicarRouteImport.update({
 const DiagnosticoRoute = DiagnosticoRouteImport.update({
   id: '/diagnostico',
   path: '/diagnostico',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EvaluacionesRoute = EvaluacionesRouteImport.update({
+  id: '/evaluaciones',
+  path: '/evaluaciones',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ExpedientesRoute = ExpedientesRouteImport.update({
@@ -66,6 +73,11 @@ const PreparacionRoute = PreparacionRouteImport.update({
   path: '/preparacion',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EvaluacionesIdRoute = EvaluacionesIdRouteImport.update({
+  id: '/evaluaciones_/$id',
+  path: '/evaluaciones/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ExpedientesIdRoute = ExpedientesIdRouteImport.update({
   id: '/expedientes_/$id',
   path: '/expedientes/$id',
@@ -82,11 +94,13 @@ export interface FileRoutesByFullPath {
   '/adminlogin': typeof AdminloginRoute
   '/aplicar': typeof AplicarRoute
   '/diagnostico': typeof DiagnosticoRoute
+  '/evaluaciones': typeof EvaluacionesRoute
   '/expedientes': typeof ExpedientesRoute
   '/gracias': typeof GraciasRoute
   '/integracion': typeof IntegracionRoute
   '/login': typeof LoginRoute
   '/preparacion': typeof PreparacionRoute
+  '/evaluaciones/$id': typeof EvaluacionesIdRoute
   '/expedientes/$id': typeof ExpedientesIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -95,11 +109,13 @@ export interface FileRoutesByTo {
   '/adminlogin': typeof AdminloginRoute
   '/aplicar': typeof AplicarRoute
   '/diagnostico': typeof DiagnosticoRoute
+  '/evaluaciones': typeof EvaluacionesRoute
   '/expedientes': typeof ExpedientesRoute
   '/gracias': typeof GraciasRoute
   '/integracion': typeof IntegracionRoute
   '/login': typeof LoginRoute
   '/preparacion': typeof PreparacionRoute
+  '/evaluaciones/$id': typeof EvaluacionesIdRoute
   '/expedientes/$id': typeof ExpedientesIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -109,11 +125,13 @@ export interface FileRoutesById {
   '/adminlogin': typeof AdminloginRoute
   '/aplicar': typeof AplicarRoute
   '/diagnostico': typeof DiagnosticoRoute
+  '/evaluaciones': typeof EvaluacionesRoute
   '/expedientes': typeof ExpedientesRoute
   '/gracias': typeof GraciasRoute
   '/integracion': typeof IntegracionRoute
   '/login': typeof LoginRoute
   '/preparacion': typeof PreparacionRoute
+  '/evaluaciones_/$id': typeof EvaluacionesIdRoute
   '/expedientes_/$id': typeof ExpedientesIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -124,11 +142,13 @@ export interface FileRouteTypes {
     | '/adminlogin'
     | '/aplicar'
     | '/diagnostico'
+    | '/evaluaciones'
     | '/expedientes'
     | '/gracias'
     | '/integracion'
     | '/login'
     | '/preparacion'
+    | '/evaluaciones/$id'
     | '/expedientes/$id'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
@@ -137,11 +157,13 @@ export interface FileRouteTypes {
     | '/adminlogin'
     | '/aplicar'
     | '/diagnostico'
+    | '/evaluaciones'
     | '/expedientes'
     | '/gracias'
     | '/integracion'
     | '/login'
     | '/preparacion'
+    | '/evaluaciones/$id'
     | '/expedientes/$id'
     | '/api/auth/$'
   id:
@@ -150,11 +172,13 @@ export interface FileRouteTypes {
     | '/adminlogin'
     | '/aplicar'
     | '/diagnostico'
+    | '/evaluaciones'
     | '/expedientes'
     | '/gracias'
     | '/integracion'
     | '/login'
     | '/preparacion'
+    | '/evaluaciones_/$id'
     | '/expedientes_/$id'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
@@ -164,11 +188,13 @@ export interface RootRouteChildren {
   AdminloginRoute: typeof AdminloginRoute
   AplicarRoute: typeof AplicarRoute
   DiagnosticoRoute: typeof DiagnosticoRoute
+  EvaluacionesRoute: typeof EvaluacionesRoute
   ExpedientesRoute: typeof ExpedientesRoute
   GraciasRoute: typeof GraciasRoute
   IntegracionRoute: typeof IntegracionRoute
   LoginRoute: typeof LoginRoute
   PreparacionRoute: typeof PreparacionRoute
+  EvaluacionesIdRoute: typeof EvaluacionesIdRoute
   ExpedientesIdRoute: typeof ExpedientesIdRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
@@ -201,6 +227,13 @@ declare module '@tanstack/react-router' {
       path: '/diagnostico'
       fullPath: '/diagnostico'
       preLoaderRoute: typeof DiagnosticoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/evaluaciones': {
+      id: '/evaluaciones'
+      path: '/evaluaciones'
+      fullPath: '/evaluaciones'
+      preLoaderRoute: typeof EvaluacionesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/expedientes': {
@@ -238,6 +271,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PreparacionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/evaluaciones_/$id': {
+      id: '/evaluaciones_/$id'
+      path: '/evaluaciones/$id'
+      fullPath: '/evaluaciones/$id'
+      preLoaderRoute: typeof EvaluacionesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/expedientes_/$id': {
       id: '/expedientes_/$id'
       path: '/expedientes/$id'
@@ -260,11 +300,13 @@ const rootRouteChildren: RootRouteChildren = {
   AdminloginRoute: AdminloginRoute,
   AplicarRoute: AplicarRoute,
   DiagnosticoRoute: DiagnosticoRoute,
+  EvaluacionesRoute: EvaluacionesRoute,
   ExpedientesRoute: ExpedientesRoute,
   GraciasRoute: GraciasRoute,
   IntegracionRoute: IntegracionRoute,
   LoginRoute: LoginRoute,
   PreparacionRoute: PreparacionRoute,
+  EvaluacionesIdRoute: EvaluacionesIdRoute,
   ExpedientesIdRoute: ExpedientesIdRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
