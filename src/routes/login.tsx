@@ -1,9 +1,20 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { PageShell } from "@/components/site-chrome";
-import { GROK_PROVIDERS, authClient, authEnabled, signIn } from "@/lib/auth/client";
+import { authClient, authEnabled } from "@/lib/auth/client";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { SITE } from "@/lib/site";
+
+/**
+ * Whether this deploy has its own Google client. Asked of the server because the
+ * credentials are server-only: the page must not offer a provider that cannot
+ * complete, which is exactly the dead button a custom domain used to show.
+ */
+const googleAvailable = createServerFn({ method: "GET" }).handler(async () => {
+  const { googleNativeEnabled } = await import("@/lib/auth/server");
+  return googleNativeEnabled;
+});
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -12,10 +23,12 @@ export const Route = createFileRoute("/login")({
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
+  loader: () => googleAvailable(),
   component: LoginPage,
 });
 
 function LoginPage() {
+  const conGoogle = Route.useLoaderData() ?? false;
   const navigate = useNavigate();
   const { user, isPending } = useCurrentUserState();
   const [mode, setMode] = useState<"entrar" | "crear">("entrar");
@@ -132,18 +145,19 @@ function LoginPage() {
             >
               {mode === "entrar" ? "Primera vez: crear acceso" : "Ya tengo acceso"}
             </button>
-            <div className="pt-2">
-              {GROK_PROVIDERS.filter((p) => p.idp === "google").map((p) => (
+            {conGoogle ? (
+              <div className="pt-2">
                 <button
-                  key={p.providerId}
                   type="button"
-                  onClick={() => signIn(p.providerId, { callbackURL: "/expedientes" })}
+                  onClick={() =>
+                    authClient.signIn.social({ provider: "google", callbackURL: "/expedientes" })
+                  }
                   className="inline-flex h-12 w-full items-center justify-center rounded-full border border-line text-sm hover:border-ink/40"
                 >
-                  Continuar con {p.label}
+                  Continuar con Google
                 </button>
-              ))}
-            </div>
+              </div>
+            ) : null}
           </form>
         )}
       </main>

@@ -82,6 +82,21 @@ const grokClientId = env("GROK_AUTH_CLIENT_ID") ?? PREVIEW_CLIENT_ID;
 const grokClientSecret = env("GROK_AUTH_CLIENT_SECRET") ?? PREVIEW_CLIENT_SECRET;
 
 /** True when federated sign-in is active (real auth is enforced). */
+/**
+ * The app's OWN Google OAuth client, when the deploy provides one.
+ *
+ * The `grok-google` provider federates to the shared broker, whose preview
+ * client only accepts `*.grok-sandbox.com` callbacks — so on a custom domain it
+ * can never complete, no matter what is configured. This is the path that works
+ * there: Better Auth talking to Google directly with credentials that belong to
+ * this project. Absent the variables, nothing is registered and the UI hides the
+ * button instead of showing one that cannot work.
+ */
+const googleClientId = env("GOOGLE_CLIENT_ID");
+const googleClientSecret = env("GOOGLE_CLIENT_SECRET");
+export const googleNativeEnabled =
+  !authDisabled && Boolean(googleClientId && googleClientSecret);
+
 export const authConfigured =
   !authDisabled && Boolean(grokClientId && grokClientSecret);
 
@@ -230,6 +245,12 @@ export const auth = betterAuth({
       dont_remember: { name: "__Host-grok-auth.dont_remember" },
     },
   },
+
+  socialProviders: googleNativeEnabled
+
+    ? { google: { clientId: googleClientId as string, clientSecret: googleClientSecret as string } }
+
+    : undefined,
 
   plugins: [
     gateIdentitySessions(),
