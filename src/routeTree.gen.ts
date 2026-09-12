@@ -15,6 +15,7 @@ import { Route as AplicarRouteImport } from './routes/aplicar'
 import { Route as DiagnosticoRouteImport } from './routes/diagnostico'
 import { Route as ExpedientesRouteImport } from './routes/expedientes'
 import { Route as GraciasRouteImport } from './routes/gracias'
+import { Route as IntegracionRouteImport } from './routes/integracion'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PreparacionRouteImport } from './routes/preparacion'
 import { Route as ExpedientesIdRouteImport } from './routes/expedientes_.$id'
@@ -50,6 +51,11 @@ const GraciasRoute = GraciasRouteImport.update({
   path: '/gracias',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IntegracionRoute = IntegracionRouteImport.update({
+  id: '/integracion',
+  path: '/integracion',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/diagnostico': typeof DiagnosticoRoute
   '/expedientes': typeof ExpedientesRoute
   '/gracias': typeof GraciasRoute
+  '/integracion': typeof IntegracionRoute
   '/login': typeof LoginRoute
   '/preparacion': typeof PreparacionRoute
   '/expedientes/$id': typeof ExpedientesIdRoute
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/diagnostico': typeof DiagnosticoRoute
   '/expedientes': typeof ExpedientesRoute
   '/gracias': typeof GraciasRoute
+  '/integracion': typeof IntegracionRoute
   '/login': typeof LoginRoute
   '/preparacion': typeof PreparacionRoute
   '/expedientes/$id': typeof ExpedientesIdRoute
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/diagnostico': typeof DiagnosticoRoute
   '/expedientes': typeof ExpedientesRoute
   '/gracias': typeof GraciasRoute
+  '/integracion': typeof IntegracionRoute
   '/login': typeof LoginRoute
   '/preparacion': typeof PreparacionRoute
   '/expedientes_/$id': typeof ExpedientesIdRoute
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/diagnostico'
     | '/expedientes'
     | '/gracias'
+    | '/integracion'
     | '/login'
     | '/preparacion'
     | '/expedientes/$id'
@@ -129,6 +139,7 @@ export interface FileRouteTypes {
     | '/diagnostico'
     | '/expedientes'
     | '/gracias'
+    | '/integracion'
     | '/login'
     | '/preparacion'
     | '/expedientes/$id'
@@ -141,6 +152,7 @@ export interface FileRouteTypes {
     | '/diagnostico'
     | '/expedientes'
     | '/gracias'
+    | '/integracion'
     | '/login'
     | '/preparacion'
     | '/expedientes_/$id'
@@ -154,6 +166,7 @@ export interface RootRouteChildren {
   DiagnosticoRoute: typeof DiagnosticoRoute
   ExpedientesRoute: typeof ExpedientesRoute
   GraciasRoute: typeof GraciasRoute
+  IntegracionRoute: typeof IntegracionRoute
   LoginRoute: typeof LoginRoute
   PreparacionRoute: typeof PreparacionRoute
   ExpedientesIdRoute: typeof ExpedientesIdRoute
@@ -204,6 +217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GraciasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/integracion': {
+      id: '/integracion'
+      path: '/integracion'
+      fullPath: '/integracion'
+      preLoaderRoute: typeof IntegracionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -242,6 +262,7 @@ const rootRouteChildren: RootRouteChildren = {
   DiagnosticoRoute: DiagnosticoRoute,
   ExpedientesRoute: ExpedientesRoute,
   GraciasRoute: GraciasRoute,
+  IntegracionRoute: IntegracionRoute,
   LoginRoute: LoginRoute,
   PreparacionRoute: PreparacionRoute,
   ExpedientesIdRoute: ExpedientesIdRoute,
