@@ -194,24 +194,82 @@ function RuedaTerritorios() {
 }
 
 /**
- * Hoja del mapa de integración: seis celdas con renglones, para escribir encima.
- * Los renglones son lo que distingue una hoja de trabajo de un formulario web.
+ * Mapa de integración como esquema, no como formulario.
+ *
+ * Seis celdas en blanco parecen campos de una página web y nadie las llena a
+ * mano. Un diagrama cerrado, con su forma y su orden visible, se puede imprimir
+ * — o copiar en una libreta con una regla — y se llena porque se entiende de un
+ * vistazo. Va en SVG para que salga nítido a cualquier tamaño de impresión.
  */
-function HojaMapa() {
+function EsquemaMapa() {
+  const celdas = [
+    { n: "01", t: ["Lo que", "viví"] },
+    { n: "02", t: ["Lo que siento", "en el cuerpo"] },
+    { n: "03", t: ["El significado", "provisional de hoy"] },
+    { n: "04", t: ["Lo que", "todavía no sé"] },
+    { n: "05", t: ["Una acción pequeña", "y verificable"] },
+    { n: "06", t: ["Quién puede", "sostenerme"] },
+  ];
+  const W = 600;
+  const cw = 280;
+  const ch = 168;
+  const gap = 20;
   return (
-    <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-      {MAPA.map((x, i) => (
-        <div key={x} className="rounded-2xl border border-clay/40 bg-white/50 p-4">
-          <p className="text-xs tracking-[0.14em] text-clay">{String(i + 1).padStart(2, "0")}</p>
-          <p className="mt-1 text-sm font-medium leading-snug text-ink">{x}</p>
-          <div className="mt-3 space-y-3">
-            {[0, 1, 2].map((n) => (
-              <div key={n} className="h-px bg-clay/25" />
+    <svg
+      viewBox={`0 0 ${W} ${ch * 3 + gap * 2 + 4}`}
+      role="img"
+      aria-label="Esquema del mapa de integración, seis celdas para completar"
+      className="mt-6 w-full"
+    >
+      {celdas.map((c, i) => {
+        const col = i % 2;
+        const fila = Math.floor(i / 2);
+        const x = col * (cw + gap) + 2;
+        const y = fila * (ch + gap) + 2;
+        return (
+          <g key={c.n}>
+            <rect
+              x={x}
+              y={y}
+              width={cw}
+              height={ch}
+              rx="16"
+              fill={fila % 2 === 0 ? "#F2EEE5" : "#E2D0B6"}
+              fillOpacity="0.5"
+              stroke="#976150"
+              strokeWidth="1.5"
+            />
+            <text x={x + 18} y={y + 28} fontSize="13" fill="#976150" fontWeight="700">
+              {c.n}
+            </text>
+            {c.t.map((linea, j) => (
+              <text
+                key={linea}
+                x={x + 18}
+                y={y + 52 + j * 19}
+                fontSize="15"
+                fill="#3A332E"
+                fontWeight="600"
+              >
+                {linea}
+              </text>
             ))}
-          </div>
-        </div>
-      ))}
-    </div>
+            {[0, 1, 2].map((n) => (
+              <line
+                key={n}
+                x1={x + 18}
+                x2={x + cw - 18}
+                y1={y + 104 + n * 20}
+                y2={y + 104 + n * 20}
+                stroke="#976150"
+                strokeOpacity="0.3"
+                strokeWidth="1"
+              />
+            ))}
+          </g>
+        );
+      })}
+    </svg>
   );
 }
 
@@ -308,7 +366,10 @@ function IntegracionPage() {
               Complétalo varias veces: al día siguiente, una semana después y cuando cambie tu
               comprensión. Imprime esta página si quieres llenarlo a mano.
             </p>
-            <HojaMapa />
+            <EsquemaMapa />
+            <p className="mt-2 text-xs text-muted">
+              Imprímelo, o cópialo en una libreta: seis recuadros y tres renglones en cada uno.
+            </p>
           </section>
 
           <section>
