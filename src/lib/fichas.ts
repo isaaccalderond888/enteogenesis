@@ -13,6 +13,7 @@ import { authMiddleware } from "@/lib/auth/middleware";
 import { getSql } from "@/lib/db";
 import { SITE } from "@/lib/site";
 import type { LecturaFicha } from "@/lib/clinica/lectura-ficha";
+import { lecturaCompleta } from "@/lib/clinica/esquema";
 
 export const STATUSES = [
   { id: "nueva", label: "Nueva" },
@@ -269,17 +270,23 @@ export const getLectura = createServerFn({ method: "GET" })
     }>`select contenido, modelo, marco_version, creada_at from lecturas where ficha_id = ${id} limit 1`;
     const fila = filas[0];
     if (!fila) return null;
+    let crudo: unknown;
     try {
-      return {
-        contenido: JSON.parse(fila.contenido) as LecturaFicha,
-        modelo: fila.modelo,
-        marcoVersion: fila.marco_version,
-        creadaAt: String(fila.creada_at),
-      };
+      crudo = JSON.parse(fila.contenido);
     } catch {
       // Una lectura ilegible equivale a no tenerla: se regenera.
       return null;
     }
+    // Y una lectura guardada con una forma anterior del marco, también: antes de
+    // esto la pantalla se caía al leer un campo que esa lectura no tenía.
+    const contenido = lecturaCompleta(crudo);
+    if (!contenido) return null;
+    return {
+      contenido,
+      modelo: fila.modelo,
+      marcoVersion: fila.marco_version,
+      creadaAt: String(fila.creada_at),
+    };
   });
 
 /**
