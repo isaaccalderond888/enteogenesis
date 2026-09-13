@@ -137,18 +137,18 @@ Sigue abierto sólo esto:
   credenciales propias vía `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`: en
   cuanto existan, el botón reaparece solo.
 
-## 9. Consentimiento para el procesamiento con IA — bloquea §2
+## 9. Consentimiento para el procesamiento con IA — aplazado
 
 `05-Sistemas/Agente-Clinico-Expediente.md` deja pendiente redactar la cláusula de
 consentimiento informado para la asistencia de IA en notas clínicas, y acepta el
 costo de que el contenido pase por la nube "con consentimiento explícito del
-paciente".
+paciente". La declaración que firma quien aplica al retiro no menciona nada de
+eso.
 
-La declaración que firma quien aplica al retiro no dice nada de eso. Antes de que
-una ficha real pase por la lectura de §2 hay que agregar a esa declaración que la
-información puede ser procesada por un asistente de IA para preparar la
-entrevista, con qué proveedor, y qué se hace con el resultado. Es la misma
-cláusula que ya estaba pendiente para las sesiones; sirve para ambas.
+**Aplazado por decisión de Isaac (2026-09-13).** Ya no bloquea §2 para construir
+ni para probar: la lectura clínica se puede desarrollar y verificar entera con
+fichas inventadas. La cláusula vuelve a ser necesaria el día que una ficha de una
+persona real pase por el modelo.
 
 ## 8. Calibración clínica del tamizaje de la ficha
 
