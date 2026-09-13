@@ -144,6 +144,11 @@ function EvaluacionPage() {
 
         <p className="mt-6 text-[15px] leading-relaxed text-ink-soft">{config.instructions}</p>
 
+        <p className="mt-4 text-[15px] leading-relaxed text-clay">
+          Esta escala está pensada para responderse acompañada, durante la entrevista con{" "}
+          {SITE.facilitators}. Si llegaste por tu cuenta, espera a ese momento.
+        </p>
+
         <div className="no-print sticky top-0 z-10 -mx-4 mt-8 bg-cream/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-sand/60">
             <div
