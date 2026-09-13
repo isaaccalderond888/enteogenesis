@@ -426,12 +426,9 @@ export function formatFicha(data: Application): string {
       item.detalle ? `\n  ${item.detalle}` : ""
     }`;
 
-  const flags = safetyFlags(data);
-  const flagBlock =
-    flags.length === 0
-      ? "Ninguna bandera automática."
-      : flags.map((f) => `• [${f.level === "hold" ? "PAUSA" : "REVISAR"}] ${f.label}: ${f.detail}`).join("\n");
-
+  // La lectura automática NO va en esta copia: es material para Isaac y Claudia,
+  // y quien aplica se lleva sus respuestas, no la interpretación que hizo el
+  // sistema sobre ellas. En el expediente interno sí aparece completa.
   return `FICHA DE ADMISIÓN · ENTEOGÉNESIS · TERRASANA
 ${data.submittedAt ? `Enviada: ${data.submittedAt}` : "Borrador"}
 Retiro: ${retreatLabel(data)}
@@ -482,7 +479,5 @@ Razones: ${data.razones}
 Acepta: ${data.declara}
 Firma: ${data.firma}
 
-=== BANDERAS PARA ISAAC Y CLAUDIA ===
-${flagBlock}
 `;
 }
