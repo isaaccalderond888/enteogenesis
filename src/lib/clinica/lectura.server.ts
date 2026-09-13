@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { formatFicha, type Application } from "../application.ts";
 import { MARCO_LECTURA_FICHA, type LecturaFicha } from "./lectura-ficha.ts";
-import { EsquemaLectura, lecturaCompleta, recortarLectura } from "./esquema.ts";
+import { EsquemaLectura, lecturaCompleta, prepararLectura } from "./esquema.ts";
 
 /**
  * Modelo y versión del marco quedan guardados junto a cada lectura: una lectura
@@ -10,7 +10,7 @@ import { EsquemaLectura, lecturaCompleta, recortarLectura } from "./esquema.ts";
  * hay forma de saber cuáles hay que rehacer.
  */
 export const MODELO = "claude-opus-5";
-export const MARCO_VERSION = "2";
+export const MARCO_VERSION = "3";
 
 /**
  * Presupuesto de salida de una lectura.
@@ -92,7 +92,7 @@ export async function leerFicha(
   if (!salida) {
     throw new LecturaNoDisponible("La respuesta no tuvo la forma esperada.");
   }
-  return recortarLectura(salida);
+  return prepararLectura(salida);
 }
 
 /**

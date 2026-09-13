@@ -9,39 +9,67 @@ import {
   leerFicha,
   type ClienteLectura,
 } from "./lectura.server.ts";
-import { EsquemaLectura, TOPES, lecturaCompleta } from "./esquema.ts";
+import { EsquemaLectura, TOPES, haySugerencia, lecturaCompleta } from "./esquema.ts";
 
 const RESPUESTA = {
   riesgo: "alto" as const,
-  alertaPrincipal: "Firmó no usar antidepresivos y reporta sertralina diaria.",
-  contradicciones: [
+  alertaPrincipal: "Toma un ISRS desde hace seis años y firmó que no lo toma.",
+  dominios: [
     {
-      declaro: "no estoy utilizando antidepresivos del tipo ISRS",
-      reporta: "sertralina 25 mg diarios",
-      porQue: "No es que mienta: no sabe que su medicamento entra en esa lista.",
+      clave: "redSosten",
+      estado: "ok",
+      etiqueta: "a favor",
+      linea: "Psiquiatra activo y dos procesos terapéuticos previos.",
     },
-  ],
-  fase: "Estabilización: el duelo es reciente y el sueño no se ha restablecido.",
-  lavados: [
-    { sustancia: "Sertralina", ventana: "2 semanas", porQue: "Con su prescriptor." },
-  ],
-  sugerencia: {
-    medicina: "Psilocibina",
-    dosis: "Dosis moderada",
-    porQue: "Primera vez con historia de disociación: entrada gradual.",
-  },
-  alertas: [
     {
-      tema: "Ideación suicida",
-      cita: "a veces pienso que estarían mejor sin mí",
-      porQue: "Dicho de paso al describir el duelo; hay que preguntarlo directo.",
+      clave: "declaracion",
+      estado: "atender",
+      etiqueta: "dos choques",
+      linea: "Escitalopram 10 mg y pregabalina 150 mg, ambos en la lista que firmó.",
+    },
+    {
+      clave: "segundaVez",
+      estado: "falta",
+      etiqueta: "falta el dato",
+      linea: "Participó antes; la ficha no dice cómo le fue.",
+    },
+    {
+      clave: "riesgoAgudo",
+      estado: "revisar",
+      etiqueta: "preguntar de frente",
+      linea: "No declara ideación, pero con distimia de años no se da por hecho.",
     },
   ],
   lectura: "Una persona en duelo reciente, con recursos y con una red que nombra.",
-  temas: [{ tema: "Duelo reciente", cita: "murió mi padre hace dos meses", porQue: "Fase." }],
-  seguridad: [{ tema: "Medicación", cita: "tomo algo para dormir desde entonces" }],
-  huecos: ["No dice si hay tratamiento psiquiátrico actual."],
-  preguntasAbiertas: ["¿Qué toma exactamente para dormir?"],
+  fase: "Estabilización: el duelo es reciente y el sueño no se ha restablecido.",
+  sugerencia: {
+    medicina: "Psilocibina",
+    dosis: "Rango bajo",
+    porQue: "Primera vez con historia de disociación: entrada gradual.",
+  },
+  preguntas: [
+    "¿Su psiquiatra sabe que viene?",
+    "¿Ha pensado alguna vez en hacerse daño?",
+    "El pánico con marihuana: ¿qué la sacó de ahí?",
+  ],
+  detalle: [
+    {
+      tema: "Declaración",
+      escribio: [
+        "Declaro que no estoy utilizando antidepresivos del tipo ISRS",
+        "Escitalopram de 10mg todas las noches desde hace 6 años",
+      ],
+      leo: "No es una omisión: lo escribe dos veces. No sabe que entra en esa lista.",
+      marco: "",
+    },
+    {
+      tema: "La agresividad desactivada",
+      escribio: ["He trabajado mucho la agresividad, al punto de llegar a verme anulada"],
+      leo: "Un Cambiador que aplana para sostener el vínculo.",
+      marco: "Interacciones Primordiales",
+    },
+  ],
+  lavados: [{ sustancia: "Sertralina", ventana: "2 semanas", porQue: "Con su prescriptor." }],
 };
 
 /** Cliente de mentira: captura la petición y devuelve lo que se le diga. */
@@ -79,16 +107,14 @@ test("devuelve la lectura con la forma que espera el expediente", async () => {
   const { cliente } = clienteFalso(RESPUESTA);
   const r = await leerFicha(ficha(), cliente);
   assert.equal(r.riesgo, "alto");
-  assert.match(r.alertaPrincipal, /sertralina/i);
-  assert.equal(r.contradicciones.length, 1);
+  assert.match(r.alertaPrincipal, /ISRS/);
+  assert.equal(r.dominios.length, 4);
   assert.equal(r.sugerencia.medicina, "Psilocibina");
   assert.equal(r.lavados[0].ventana, "2 semanas");
   assert.match(r.fase, /estabilizaci/i);
-  assert.equal(r.alertas.length, 1);
-  assert.equal(r.alertas[0].tema, "Ideación suicida");
+  assert.equal(r.preguntas.length, 3);
   assert.match(r.lectura, /duelo/);
-  assert.equal(r.temas[0].cita, "murió mi padre hace dos meses");
-  assert.equal(r.huecos.length, 1);
+  assert.equal(r.detalle[0].escribio.length, 2);
 });
 
 test("manda el marco clínico como system y lo deja cacheado", async () => {
@@ -261,35 +287,37 @@ test("el marco pone topes de extensión: lo que no se alcanza a leer no se lee",
   assert.match(MARCO_LECTURA_FICHA, /150 palabras/);
   assert.match(MARCO_LECTURA_FICHA, /un solo párrafo/i);
   assert.match(MARCO_LECTURA_FICHA, /no cambia lo que van a hacer o preguntar/i);
-  assert.match(MARCO_LECTURA_FICHA, /máximo tres/i);
+  assert.match(MARCO_LECTURA_FICHA, /UNA línea/);
+  assert.match(MARCO_LECTURA_FICHA, /exactamente tres/i);
 });
 
-function temas(n: number) {
+function detalles(n: number) {
   return Array.from({ length: n }, (_, i) => ({
     tema: `tema ${i}`,
-    cita: "cita",
-    porQue: "porque",
+    escribio: ["cita"],
+    leo: "lectura",
+    marco: "",
   }));
 }
 
 test("los topes de cada lista viajan al modelo dentro del esquema que se le pide", async () => {
-  assert.equal(EsquemaLectura.safeParse({ ...RESPUESTA, temas: temas(6) }).success, false);
+  assert.equal(EsquemaLectura.safeParse({ ...RESPUESTA, detalle: detalles(9) }).success, false);
 });
 
 test("una lectura con un elemento de más se recorta, no se tira", async () => {
   // Los topes viajan como parte del esquema, pero la API no los impone. Si el
   // modelo se pasa por uno, la lectura está completa y ya costó dinero:
   // rechazarla sería tirar el trabajo entero por una cuota.
-  const { cliente } = clienteFalso({ ...RESPUESTA, temas: temas(6) });
+  const { cliente } = clienteFalso({ ...RESPUESTA, detalle: detalles(9) });
   const r = await leerFicha(ficha(), cliente);
-  assert.equal(r.temas.length, TOPES.temas);
+  assert.equal(r.detalle.length, TOPES.detalle);
   assert.equal(r.riesgo, "alto");
 });
 
 test("una lectura ya guardada se muestra entera, sin recortarla por detrás", async () => {
   // Recortar al releer borraría de la pantalla material clínico ya producido.
-  const guardada = lecturaCompleta({ ...RESPUESTA, temas: temas(6) });
-  assert.equal(guardada?.temas.length, 6);
+  const guardada = lecturaCompleta({ ...RESPUESTA, detalle: detalles(9) });
+  assert.equal(guardada?.detalle.length, 9);
 });
 
 test("los lavados no se recortan por cuota: si hay cinco, son cinco", async () => {
@@ -311,4 +339,80 @@ test("la versión del marco que muestra el expediente es la que se usa al genera
   const fuente = readFileSync(ruta, "utf8");
   const encontrada = /const MARCO_VERSION_VIGENTE = "([^"]+)"/.exec(fuente)?.[1];
   assert.equal(encontrada, MARCO_VERSION);
+});
+
+test("el tablero llega ordenado por urgencia, no como lo escribió el modelo", async () => {
+  const { cliente } = clienteFalso(RESPUESTA);
+  const r = await leerFicha(ficha(), cliente);
+  assert.deepEqual(
+    r.dominios.map((d) => d.estado),
+    ["atender", "revisar", "falta", "ok"],
+  );
+});
+
+test("una casilla de clave inventada no llega a la pantalla", async () => {
+  const { cliente } = clienteFalso({
+    ...RESPUESTA,
+    dominios: [
+      ...RESPUESTA.dominios,
+      { clave: "auraChakras", estado: "atender", etiqueta: "inventado", linea: "x" },
+    ],
+  });
+  const r = await leerFicha(ficha(), cliente);
+  assert.ok(!r.dominios.some((d) => d.clave === "auraChakras"));
+  assert.equal(r.dominios.length, RESPUESTA.dominios.length);
+});
+
+test("no sugerir medicina es una respuesta válida, no una lectura rota", async () => {
+  // Cuando hay que resolver una medicación con quien la prescribió, inventar una
+  // dosis estorba esa conversación. El caso real terminó exactamente así: el
+  // psiquiatra hizo el desmonte, autorizó, y entonces se decidió la medicina.
+  const sinMedicina = {
+    ...RESPUESTA,
+    sugerencia: {
+      medicina: "",
+      dosis: "",
+      porQue: "Con un ISRS vigente, la suspensión la decide quien lo prescribió.",
+    },
+  };
+  const { cliente } = clienteFalso(sinMedicina);
+  const r = await leerFicha(ficha(), cliente);
+  assert.equal(r.sugerencia.medicina, "");
+  assert.match(r.sugerencia.porQue, /prescribió/);
+  assert.equal(haySugerencia(r), false);
+  assert.equal(haySugerencia(await leerFicha(ficha(), clienteFalso(RESPUESTA).cliente)), true);
+});
+
+test("la cita y la lectura llegan en campos distintos, no en la misma frase", async () => {
+  // Es lo que permite a Isaac tapar la interpretación con la mano y leer lo que
+  // la persona escribió en crudo.
+  const { cliente } = clienteFalso(RESPUESTA);
+  const r = await leerFicha(ficha(), cliente);
+  const entrada = r.detalle[0];
+  assert.ok(Array.isArray(entrada.escribio));
+  assert.ok(entrada.escribio.every((c) => !entrada.leo.includes(c)));
+});
+
+test("el marco terapéutico se nombra sólo donde de verdad se usó", async () => {
+  const { cliente } = clienteFalso(RESPUESTA);
+  const r = await leerFicha(ficha(), cliente);
+  const conMarco = r.detalle.filter((d) => d.marco);
+  assert.equal(conMarco.length, 1, "no se le cuelga etiqueta a toda observación");
+  assert.equal(conMarco[0].marco, "Interacciones Primordiales");
+});
+
+test("el marco distingue el riesgo propio del suicidio en la familia", async () => {
+  // Las cinco menciones de suicidio de las fichas reales eran todas familiares.
+  // Una alerta que no distingue eso suena en falso una de cada seis veces.
+  assert.match(MARCO_LECTURA_FICHA, /LO PROPIO Y LO DE LA FAMILIA NO SON LO MISMO/);
+  assert.match(MARCO_LECTURA_FICHA, /nunca en riesgo agudo/i);
+});
+
+test("el marco permite no sugerir medicina y dice cuándo", async () => {
+  assert.match(MARCO_LECTURA_FICHA, /CUÁNDO NO SUGERIR NINGUNA MEDICINA/);
+  assert.match(MARCO_LECTURA_FICHA, /sólo\s+puede suspender quien la prescribió/);
+});
+
+test("el marco explica que las casillas fijas van aunque estén en verde", async () => {
+  assert.match(MARCO_LECTURA_FICHA, /su ausencia es la información/i);
 });
