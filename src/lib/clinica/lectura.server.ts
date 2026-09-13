@@ -19,10 +19,20 @@ const Observacion = z.object({
 });
 
 const Esquema = z.object({
+  riesgo: z.enum(["bajo", "medio", "alto"]),
+  alertaPrincipal: z.string(),
   alertas: z.array(Observacion),
+  contradicciones: z.array(
+    z.object({ declaro: z.string(), reporta: z.string(), porQue: z.string() }),
+  ),
   lectura: z.string(),
+  fase: z.string(),
   temas: z.array(Observacion),
   seguridad: z.array(z.object({ tema: z.string(), cita: z.string() })),
+  lavados: z.array(
+    z.object({ sustancia: z.string(), ventana: z.string(), porQue: z.string() }),
+  ),
+  sugerencia: z.object({ medicina: z.string(), dosis: z.string(), porQue: z.string() }),
   huecos: z.array(z.string()),
   preguntasAbiertas: z.array(z.string()),
 });

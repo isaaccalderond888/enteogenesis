@@ -245,6 +245,52 @@ function ExpedientePage() {
             </p>
           ) : (
             <div className="mt-4 space-y-6">
+              <div
+                className={
+                  lectura.contenido.riesgo === "alto"
+                    ? "rounded-2xl border border-hold/40 bg-hold/5 p-5"
+                    : lectura.contenido.riesgo === "medio"
+                      ? "rounded-2xl border border-review/40 bg-review/5 p-5"
+                      : "rounded-2xl border border-line bg-paper p-5"
+                }
+              >
+                <p
+                  className={
+                    lectura.contenido.riesgo === "alto"
+                      ? "text-xs font-bold tracking-[0.18em] text-hold"
+                      : lectura.contenido.riesgo === "medio"
+                        ? "text-xs font-bold tracking-[0.18em] text-review"
+                        : "text-xs font-bold tracking-[0.18em] text-sage"
+                  }
+                >
+                  RIESGO {lectura.contenido.riesgo.toUpperCase()}
+                </p>
+                <p className="mt-2 text-[15px] leading-relaxed text-ink">
+                  {lectura.contenido.alertaPrincipal}
+                </p>
+              </div>
+
+              {lectura.contenido.contradicciones.length ? (
+                <div className="rounded-2xl border border-hold/40 bg-hold/5 p-5">
+                  <p className="text-xs font-bold tracking-[0.18em] text-hold">
+                    LO FIRMADO NO COINCIDE CON LO REPORTADO
+                  </p>
+                  <div className="mt-3 space-y-4">
+                    {lectura.contenido.contradicciones.map((c) => (
+                      <div key={c.declaro + c.reporta}>
+                        <p className="text-[15px] leading-relaxed text-ink-soft">
+                          <span className="text-ink">Firmó:</span> “{c.declaro}”
+                        </p>
+                        <p className="mt-1 text-[15px] leading-relaxed text-ink-soft">
+                          <span className="text-ink">Reportó:</span> “{c.reporta}”
+                        </p>
+                        <p className="mt-1 text-[15px] leading-relaxed text-ink-soft">{c.porQue}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
               {lectura.contenido.alertas.length ? (
                 <div className="rounded-2xl border border-hold/40 bg-hold/5 p-5">
                   <p className="text-xs font-bold tracking-[0.18em] text-hold">ATENCIÓN PRIMERO</p>
@@ -265,6 +311,49 @@ function ExpedientePage() {
               <p className="whitespace-pre-line text-[15px] leading-relaxed text-ink-soft">
                 {lectura.contenido.lectura}
               </p>
+
+              {lectura.contenido.fase ? (
+                <p className="text-[15px] leading-relaxed text-ink-soft">
+                  <span className="text-ink">Fase:</span> {lectura.contenido.fase}
+                </p>
+              ) : null}
+
+              <div className="rounded-2xl border border-line bg-sand/30 p-5">
+                <p className="text-xs font-bold tracking-[0.18em] text-clay">
+                  PUNTO DE PARTIDA PARA LA ENTREVISTA
+                </p>
+                <p className="mt-3 text-[15px] leading-relaxed text-ink">
+                  <span className="font-medium">{lectura.contenido.sugerencia.medicina}</span>
+                  {lectura.contenido.sugerencia.dosis
+                    ? ` · ${lectura.contenido.sugerencia.dosis}`
+                    : ""}
+                </p>
+                <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">
+                  {lectura.contenido.sugerencia.porQue}
+                </p>
+                <p className="mt-3 text-xs leading-relaxed text-muted">
+                  No es una indicación. Se decide en la entrevista, en el momento y de común
+                  acuerdo con quien participa.
+                </p>
+              </div>
+
+              {lectura.contenido.lavados.length ? (
+                <div>
+                  <p className="text-xs font-bold tracking-[0.18em] text-review">
+                    SUSPENDER ANTES DEL RETIRO
+                  </p>
+                  <div className="mt-3 space-y-3">
+                    {lectura.contenido.lavados.map((l) => (
+                      <div key={l.sustancia} className="rounded-2xl border border-line p-4">
+                        <p className="text-sm text-ink">
+                          {l.sustancia} — <span className="text-review">{l.ventana}</span>
+                        </p>
+                        <p className="mt-1 text-[15px] leading-relaxed text-ink-soft">{l.porQue}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
 
               {lectura.contenido.temas.length ? (
                 <div>
