@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, Copy, Printer } from "lucide-react";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import {useEffect, useState, type ReactNode } from "react";
 import { PageShell } from "@/components/site-chrome";
 import {
   BODY_FIELDS,
@@ -11,7 +11,6 @@ import {
   formatFicha,
   recallFicha,
   retreatLabel,
-  safetyFlags,
   sexoTexto,
   generoTexto,
   type Application,
@@ -50,8 +49,6 @@ function GraciasPage() {
     }
   }, []);
 
-  const flags = useMemo(() => (data ? safetyFlags(data) : []), [data]);
-  const holds = flags.filter((f) => f.level === "hold");
   const text = data ? formatFicha(data) : "";
   const mail = data
     ? mailtoFicha(`Ficha Enteogénesis · ${data.nombreCompleto}`, text.slice(0, 1800))
@@ -184,24 +181,10 @@ function GraciasPage() {
           </li>
         </ol>
 
-        {holds.length > 0 ? (
-          <div className="mt-8 rounded-2xl border border-line bg-sand/40 p-5">
-            <p className="text-xs font-bold tracking-[0.18em] text-clay">PARA LA ENTREVISTA</p>
-            <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-              Hay temas de salud que Isaac y Claudia van a querer conversar. No es un rechazo
-              automático ni un diagnóstico.
-            </p>
-            <ul className="mt-3 space-y-1 text-sm text-ink">
-              {holds.map((f) => (
-                <li key={f.label}>· {f.label}</li>
-              ))}
-            </ul>
-          </div>
-        ) : (
-          <p className="mt-8 text-sm leading-relaxed text-muted">
-            La entrevista de claridad sigue siendo parte del proceso, con o sin notas automáticas.
-          </p>
-        )}
+        <p className="mt-8 text-sm leading-relaxed text-muted">
+          La entrevista de claridad sigue siendo parte del proceso. Ahí conversamos con calma
+          lo que haga falta de tu ficha.
+        </p>
 
         <div className="no-print mt-8 flex flex-wrap gap-3">
           <button
