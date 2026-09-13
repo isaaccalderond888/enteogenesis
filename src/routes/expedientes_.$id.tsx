@@ -17,6 +17,16 @@ import {
   type LecturaGuardada,
 } from "@/lib/fichas";
 
+/**
+ * Se escribe aquí, y no con toUpperCase, para que un valor inesperado guardado en
+ * la base no tumbe la pantalla del expediente a media entrevista.
+ */
+const ETIQUETA_RIESGO: Record<string, string> = {
+  bajo: "BAJO",
+  medio: "MEDIO",
+  alto: "ALTO",
+};
+
 export const Route = createFileRoute("/expedientes_/$id")({
   head: () => ({
     meta: [
@@ -263,7 +273,7 @@ function ExpedientePage() {
                         : "text-xs font-bold tracking-[0.18em] text-sage"
                   }
                 >
-                  RIESGO {lectura.contenido.riesgo.toUpperCase()}
+                  RIESGO {ETIQUETA_RIESGO[lectura.contenido.riesgo] ?? "SIN CLASIFICAR"}
                 </p>
                 <p className="mt-2 text-[15px] leading-relaxed text-ink">
                   {lectura.contenido.alertaPrincipal}

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { emptyApplication, type Application } from "../application.ts";
+import { lecturaCompleta } from "./esquema.ts";
 import { MARCO_LECTURA_FICHA } from "./lectura-ficha.ts";
 import { LecturaNoDisponible, leerFicha, type ClienteLectura } from "./lectura.server.ts";
 
@@ -138,5 +139,39 @@ test("el marco nombra las reglas que no son negociables", async () => {
     /defensas altas/i,
   ]) {
     assert.match(MARCO_LECTURA_FICHA, regla, `el marco debería decir ${regla}`);
+  }
+});
+
+test("una lectura guardada con la forma vigente se relee completa", async () => {
+  const releida = lecturaCompleta(JSON.parse(JSON.stringify(RESPUESTA)));
+  assert.ok(releida, "la respuesta que produce el modelo debería poder releerse");
+  assert.equal(releida.riesgo, "alto");
+});
+
+test("una lectura guardada antes de que el marco tuviera riesgo se descarta, no rompe", async () => {
+  // Esto ocurrió de verdad: se generaron lecturas con la primera versión del
+  // marco, el marco creció, y la pantalla del expediente se cayó al leer un
+  // campo que esas lecturas no tenían. Ahora equivalen a no tener lectura.
+  const vieja = { ...RESPUESTA } as Record<string, unknown>;
+  delete vieja.riesgo;
+  delete vieja.alertaPrincipal;
+  assert.equal(lecturaCompleta(vieja), null);
+});
+
+test("cualquier campo que falte invalida la lectura guardada", async () => {
+  for (const campo of Object.keys(RESPUESTA)) {
+    const incompleta = { ...RESPUESTA } as Record<string, unknown>;
+    delete incompleta[campo];
+    assert.equal(
+      lecturaCompleta(incompleta),
+      null,
+      `una lectura sin ${campo} debería descartarse`,
+    );
+  }
+});
+
+test("lo que no es una lectura se descarta sin lanzar", async () => {
+  for (const basura of [null, undefined, 0, "", "texto suelto", [], {}]) {
+    assert.equal(lecturaCompleta(basura), null);
   }
 });

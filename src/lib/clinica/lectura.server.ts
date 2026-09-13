@@ -1,8 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
-import { z } from "zod";
 import { formatFicha, type Application } from "../application.ts";
 import { MARCO_LECTURA_FICHA, type LecturaFicha } from "./lectura-ficha.ts";
+import { EsquemaLectura } from "./esquema.ts";
 
 /**
  * Modelo y versión del marco quedan guardados junto a cada lectura: una lectura
@@ -11,31 +11,6 @@ import { MARCO_LECTURA_FICHA, type LecturaFicha } from "./lectura-ficha.ts";
  */
 export const MODELO = "claude-opus-5";
 export const MARCO_VERSION = "1";
-
-const Observacion = z.object({
-  tema: z.string(),
-  cita: z.string(),
-  porQue: z.string(),
-});
-
-const Esquema = z.object({
-  riesgo: z.enum(["bajo", "medio", "alto"]),
-  alertaPrincipal: z.string(),
-  alertas: z.array(Observacion),
-  contradicciones: z.array(
-    z.object({ declaro: z.string(), reporta: z.string(), porQue: z.string() }),
-  ),
-  lectura: z.string(),
-  fase: z.string(),
-  temas: z.array(Observacion),
-  seguridad: z.array(z.object({ tema: z.string(), cita: z.string() })),
-  lavados: z.array(
-    z.object({ sustancia: z.string(), ventana: z.string(), porQue: z.string() }),
-  ),
-  sugerencia: z.object({ medicina: z.string(), dosis: z.string(), porQue: z.string() }),
-  huecos: z.array(z.string()),
-  preguntasAbiertas: z.array(z.string()),
-});
 
 /** Lo mínimo que necesita la función para hablar con la API. Facilita probarla. */
 export type ClienteLectura = {
@@ -75,14 +50,14 @@ export async function leerFicha(
         content: `Ficha de admisión a leer:\n\n${formatFicha(data)}`,
       },
     ],
-    output_config: { format: zodOutputFormat(Esquema) },
+    output_config: { format: zodOutputFormat(EsquemaLectura) },
   });
 
   // Una negativa del modelo llega con HTTP 200, no como excepción.
   if (respuesta.stop_reason === "refusal") {
     throw new LecturaNoDisponible("El modelo declinó producir la lectura de esta ficha.");
   }
-  const salida = Esquema.safeParse(respuesta.parsed_output);
+  const salida = EsquemaLectura.safeParse(respuesta.parsed_output);
   if (!salida.success) {
     throw new LecturaNoDisponible("La respuesta no tuvo la forma esperada.");
   }
