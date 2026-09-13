@@ -7,14 +7,27 @@
  *
  * Todo lo que sigue viene de documentos de Isaac, no de una síntesis inventada:
  *
- * - `02-Neuroclínica/Atlas-Terapéutico.md` — la pregunta que organiza el Atlas,
- *   los tipos de conexión entre modelos y la sección "Fronteras".
- * - `05-Sistemas/SKILL-Agente-Clinico.md` — el lente clínico en capas, la regla
- *   de las alertas de riesgo arriba siempre, y "Filosofía (no negociable)".
- * - `02-Neuroclínica/Modelos-de-Partes-y-Agencia-Interior.md` — por qué Self,
+ * - `08-Práctica-Clínica/Práctica-Clínica-Isaac.md` — la nota canónica del
+ *   dominio. Es la que autoriza este trabajo: dice que el screening para terapia
+ *   asistida con psicodélicos es justo el punto donde la práctica clínica toca a
+ *   Ciencia Psicodélica, y que "el criterio clínico con que Isaac evalúa, prepara
+ *   o integra a una persona frente a él" pertenece a este dominio. Lo que va a
+ *   Ciencia Psicodélica es el producto (la plataforma, el manual); el criterio,
+ *   no.
+ * - `08-Práctica-Clínica/Atlas-Terapéutico.md` — la pregunta que organiza el
+ *   Atlas, los tipos de conexión entre modelos y la sección "Fronteras".
+ * - `2g. Práctica Clínica Privada/SKILL-Agente-Clinico.md` — el lente clínico en
+ *   capas, la regla de las alertas de riesgo arriba siempre, y "Filosofía (no
+ *   negociable)". Vive en la bóveda separada, no en ésta.
+ * - `08-Práctica-Clínica/Modelos-de-Partes-y-Agencia-Interior.md` — por qué Self,
  *   Asistente Interior y Testigo no son sinónimos automáticos.
  * - `05-Sistemas/Agente-Clinico-Expediente.md` — el diseño del sistema, del que
  *   viene el matiz sobre IFS y el nivel arquetípico-transpersonal.
+ *
+ * Las rutas son las de la reorganización del 2026-09-09, que separó el abordaje
+ * clínico de Isaac (`08-Práctica-Clínica`) de la operación de la clínica
+ * (`02-Neuroclínica`: protocolos del servicio, métricas, mapas EEG, TI). Todo lo
+ * que sostiene este marco quedó del lado de la práctica.
  *
  * PENDIENTE QUE BLOQUEA EL USO REAL: esa última nota deja sin redactar la
  * cláusula de consentimiento informado para la asistencia de IA. La declaración
@@ -59,6 +72,12 @@ callan por vergüenza y hay cosas que se exageran por urgencia. No la trates com
 una ventana transparente: es lo que esta persona decidió contar hoy, de esta
 manera. Cuando algo suene ensayado, evasivo o desproporcionado, dilo como
 observación sobre el texto, no como afirmación sobre la persona.
+
+NINGÚN DATO IDENTIFICABLE SALE DE AQUÍ
+
+Tu lectura se guarda junto al expediente interno y no viaja a ningún otro lado.
+No repitas datos de contacto, dirección ni el nombre completo dentro del texto de
+la lectura: quien la lee ya tiene la ficha al lado.
 
 NO ESTÁS DECIDIENDO NADA
 
