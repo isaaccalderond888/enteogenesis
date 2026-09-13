@@ -18,6 +18,13 @@ import {
 } from "@/lib/fichas";
 
 /**
+ * La versión del marco con la que se leen las fichas hoy. Duplicada a propósito:
+ * el módulo que la define arrastra el SDK de Anthropic y no tiene nada que hacer
+ * en el navegador. Una prueba cuida que las dos no se separen.
+ */
+const MARCO_VERSION_VIGENTE = "2";
+
+/**
  * Se escribe aquí, y no con toUpperCase, para que un valor inesperado guardado en
  * la base no tumbe la pantalla del expediente a media entrevista.
  */
@@ -430,6 +437,9 @@ function ExpedientePage() {
                 orienta la conversación. Generada el{" "}
                 {new Date(lectura.creadaAt).toLocaleString("es-MX")} con {lectura.modelo}, marco
                 v{lectura.marcoVersion}.
+                {lectura.marcoVersion !== MARCO_VERSION_VIGENTE
+                  ? " Los criterios cambiaron desde entonces: regenérala para leerla con el marco de hoy."
+                  : ""}
               </p>
             </div>
           )}

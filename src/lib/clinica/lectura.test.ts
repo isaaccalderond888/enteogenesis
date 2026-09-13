@@ -1,9 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { emptyApplication, type Application } from "../application.ts";
-import { lecturaCompleta } from "./esquema.ts";
 import { MARCO_LECTURA_FICHA } from "./lectura-ficha.ts";
-import { LecturaNoDisponible, leerFicha, type ClienteLectura } from "./lectura.server.ts";
+import { readFileSync } from "node:fs";
+import {
+  LecturaNoDisponible,
+  MARCO_VERSION,
+  leerFicha,
+  type ClienteLectura,
+} from "./lectura.server.ts";
+import { EsquemaLectura, TOPES, lecturaCompleta } from "./esquema.ts";
 
 const RESPUESTA = {
   riesgo: "alto" as const,
@@ -247,4 +253,62 @@ test("una respuesta que topó con el límite no se guarda a medias", async () =>
       return true;
     },
   );
+});
+
+test("el marco pone topes de extensión: lo que no se alcanza a leer no se lee", async () => {
+  // La primera versión producía ensayos de varias pantallas. Isaac lee esto
+  // minutos antes de sentarse con la persona, a veces con varias fichas seguidas.
+  assert.match(MARCO_LECTURA_FICHA, /150 palabras/);
+  assert.match(MARCO_LECTURA_FICHA, /un solo párrafo/i);
+  assert.match(MARCO_LECTURA_FICHA, /no cambia lo que van a hacer o preguntar/i);
+  assert.match(MARCO_LECTURA_FICHA, /máximo tres/i);
+});
+
+function temas(n: number) {
+  return Array.from({ length: n }, (_, i) => ({
+    tema: `tema ${i}`,
+    cita: "cita",
+    porQue: "porque",
+  }));
+}
+
+test("los topes de cada lista viajan al modelo dentro del esquema que se le pide", async () => {
+  assert.equal(EsquemaLectura.safeParse({ ...RESPUESTA, temas: temas(6) }).success, false);
+});
+
+test("una lectura con un elemento de más se recorta, no se tira", async () => {
+  // Los topes viajan como parte del esquema, pero la API no los impone. Si el
+  // modelo se pasa por uno, la lectura está completa y ya costó dinero:
+  // rechazarla sería tirar el trabajo entero por una cuota.
+  const { cliente } = clienteFalso({ ...RESPUESTA, temas: temas(6) });
+  const r = await leerFicha(ficha(), cliente);
+  assert.equal(r.temas.length, TOPES.temas);
+  assert.equal(r.riesgo, "alto");
+});
+
+test("una lectura ya guardada se muestra entera, sin recortarla por detrás", async () => {
+  // Recortar al releer borraría de la pantalla material clínico ya producido.
+  const guardada = lecturaCompleta({ ...RESPUESTA, temas: temas(6) });
+  assert.equal(guardada?.temas.length, 6);
+});
+
+test("los lavados no se recortan por cuota: si hay cinco, son cinco", async () => {
+  const lavados = Array.from({ length: 5 }, (_, i) => ({
+    sustancia: `sustancia ${i}`,
+    ventana: "2 semanas",
+    porQue: "interacción",
+  }));
+  const { cliente } = clienteFalso({ ...RESPUESTA, lavados });
+  const r = await leerFicha(ficha(), cliente);
+  assert.equal(r.lavados.length, 5);
+});
+
+test("la versión del marco que muestra el expediente es la que se usa al generar", async () => {
+  // El expediente la repite a mano para no arrastrar el SDK al navegador. Si las
+  // dos se separan, la pantalla avisa de un marco viejo que en realidad es el
+  // vigente, o peor, calla uno que sí quedó atrás.
+  const ruta = new URL("../../routes/expedientes_.$id.tsx", import.meta.url);
+  const fuente = readFileSync(ruta, "utf8");
+  const encontrada = /const MARCO_VERSION_VIGENTE = "([^"]+)"/.exec(fuente)?.[1];
+  assert.equal(encontrada, MARCO_VERSION);
 });

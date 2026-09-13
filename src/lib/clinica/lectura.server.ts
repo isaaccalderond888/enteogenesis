@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { formatFicha, type Application } from "../application.ts";
 import { MARCO_LECTURA_FICHA, type LecturaFicha } from "./lectura-ficha.ts";
-import { EsquemaLectura } from "./esquema.ts";
+import { EsquemaLectura, lecturaCompleta, recortarLectura } from "./esquema.ts";
 
 /**
  * Modelo y versión del marco quedan guardados junto a cada lectura: una lectura
@@ -10,7 +10,7 @@ import { EsquemaLectura } from "./esquema.ts";
  * hay forma de saber cuáles hay que rehacer.
  */
 export const MODELO = "claude-opus-5";
-export const MARCO_VERSION = "1";
+export const MARCO_VERSION = "2";
 
 /**
  * Presupuesto de salida de una lectura.
@@ -64,7 +64,7 @@ export async function leerFicha(
         content: `Ficha de admisión a leer:\n\n${formatFicha(data)}`,
       },
     ],
-    output_config: { format: zodOutputFormat(EsquemaLectura) },
+    output_config: { format: formatoDeSalida() },
   });
 
   let respuesta: RespuestaLectura;
@@ -88,11 +88,24 @@ export async function leerFicha(
       "La lectura salió más larga de lo que cabe en una respuesta y quedó incompleta.",
     );
   }
-  const salida = EsquemaLectura.safeParse(respuesta.parsed_output);
-  if (!salida.success) {
+  const salida = lecturaCompleta(respuesta.parsed_output);
+  if (!salida) {
     throw new LecturaNoDisponible("La respuesta no tuvo la forma esperada.");
   }
-  return salida.data;
+  return recortarLectura(salida);
+}
+
+/**
+ * El formato que se le pide al modelo: el esquema con topes, pero con la lectura
+ * del resultado a cargo nuestro.
+ *
+ * Los topes viajan al modelo como parte del esquema, no como una regla que la
+ * API imponga. Si el modelo devolviera un elemento de más, dejar que el SDK
+ * validara contra esos topes tiraría la lectura entera —completa y ya pagada—
+ * por una cuota. Así llega cruda y se recorta después.
+ */
+function formatoDeSalida() {
+  return { ...zodOutputFormat(EsquemaLectura), parse: (texto: string) => JSON.parse(texto) };
 }
 
 
