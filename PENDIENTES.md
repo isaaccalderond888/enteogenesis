@@ -121,12 +121,15 @@ código original. **Sin verificar.** Antes de publicarla hay que marcar y
 confirmar que contesta; alternativas a evaluar: SAPTEL (Cruz Roja Mexicana) y la
 línea de apoyo psicológico de Locatel para CDMX.
 
-## 7. Deuda heredada de la plantilla
+## 7. Deuda heredada de la plantilla — resuelto
 
-- 17 pruebas de `npm test` fallan. Ninguna es del sitio: verifican archivos de
-  la plantilla (`SKILL.md`, `AGENTS.md`, metadatos de `grok.me`) que este repo
-  no tiene. Se pueden borrar.
-- `npm run lint` marca un `no-empty` en `src/lib/app-data/client.server.ts:281`.
+Las 17 pruebas que fallaban afirmaban el estado original de la plantilla, no un
+defecto de esta app; se eliminaron esos bloques. El error de lint quedó cerrado.
+`npm test`, `npm run lint` y `npm run typecheck` están limpios, así que de aquí
+en adelante una falla significa algo.
+
+Sigue abierto sólo esto:
+
 - `/aplicar` es un redirect a `/` sin nada propio. Se conserva por si algún
   enlace viejo lo usa.
 - Google: el botón del broker de Grok sólo completa en `*.grok-sandbox.com`, así
