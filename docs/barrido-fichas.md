@@ -117,3 +117,21 @@ clínicamente relevante, pero es otro dominio y otra conversación.
 3. Riesgo agudo distingue lo propio de lo familiar.
 4. "Suicidio en la familia" y "perinatal cargado" se ganaron su lugar con datos;
    no estaban en mi propuesta inicial con ese peso.
+
+## Qué se construyó con esto
+
+El tablero de `src/lib/clinica/dominios.ts` sale directo de aquí: el piso fijo de
+cuatro casillas, las variables ordenadas por la frecuencia de la tabla de arriba,
+y `suicidioFamiliar` separado de `antecedenteFamiliar` por el falso positivo.
+
+`segundaVez` no salió de las cuentas sino de leer una ficha completa: alguien que
+ya había participado, y cuya dosis dependía de cómo le fue la vez anterior — un
+dato que el formulario nunca pregunta.
+
+Lo que el barrido dejó como tarea del formulario, no del sistema:
+
+1. La declaración nombra categorías (ISRS, IMAO, anticonvulsivos) y la gente
+   conoce nombres comerciales. Una lista de medicamentos junto a la casilla
+   evitaría la mitad de los seis choques.
+2. El formulario pregunta *si* participó antes, nunca *cómo fue*. Ninguna lectura
+   puede recuperar un dato que nadie pidió.

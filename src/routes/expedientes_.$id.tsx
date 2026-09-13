@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { PageShell } from "@/components/site-chrome";
 import { BODY_FIELDS, generoTexto } from "@/lib/application";
 import { RedirectToSignIn, UserButton } from "@/lib/auth/gates";
+import { definicion } from "@/lib/clinica/dominios";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import {
   getFicha,
@@ -22,16 +23,49 @@ import {
  * el módulo que la define arrastra el SDK de Anthropic y no tiene nada que hacer
  * en el navegador. Una prueba cuida que las dos no se separen.
  */
-const MARCO_VERSION_VIGENTE = "2";
+const MARCO_VERSION_VIGENTE = "3";
 
 /**
- * Se escribe aquí, y no con toUpperCase, para que un valor inesperado guardado en
- * la base no tumbe la pantalla del expediente a media entrevista.
+ * Se escriben aquí, y no con toUpperCase ni concatenando clases, para que un
+ * valor inesperado guardado en la base no tumbe la pantalla del expediente a
+ * media entrevista, y para que Tailwind vea las clases completas.
  */
 const ETIQUETA_RIESGO: Record<string, string> = {
   bajo: "BAJO",
   medio: "MEDIO",
   alto: "ALTO",
+};
+
+const CAJA_RIESGO: Record<string, string> = {
+  alto: "rounded-2xl border border-hold/40 bg-hold/5 p-5",
+  medio: "rounded-2xl border border-review/40 bg-review/5 p-5",
+  bajo: "rounded-2xl border border-line bg-paper p-5",
+};
+
+const TEXTO_RIESGO: Record<string, string> = {
+  alto: "text-xs font-bold tracking-[0.18em] text-hold",
+  medio: "text-xs font-bold tracking-[0.18em] text-review",
+  bajo: "text-xs font-bold tracking-[0.18em] text-sage",
+};
+
+/** El color de una casilla del tablero dice qué hacer con ella. */
+const BARRA_ESTADO: Record<string, string> = {
+  atender: "bg-hold",
+  revisar: "bg-review",
+  falta: "bg-sand",
+  ok: "bg-sage",
+};
+
+const COLOR_ESTADO: Record<string, string> = {
+  atender: "text-hold",
+  revisar: "text-review",
+  falta: "text-clay",
+  ok: "text-sage",
+};
+
+/** Sólo lo que hay que atender se tiñe: si todo se tiñe, nada resalta. */
+const FONDO_ESTADO: Record<string, string> = {
+  atender: "bg-hold/5",
 };
 
 export const Route = createFileRoute("/expedientes_/$id")({
@@ -262,24 +296,8 @@ function ExpedientePage() {
             </p>
           ) : (
             <div className="mt-4 space-y-6">
-              <div
-                className={
-                  lectura.contenido.riesgo === "alto"
-                    ? "rounded-2xl border border-hold/40 bg-hold/5 p-5"
-                    : lectura.contenido.riesgo === "medio"
-                      ? "rounded-2xl border border-review/40 bg-review/5 p-5"
-                      : "rounded-2xl border border-line bg-paper p-5"
-                }
-              >
-                <p
-                  className={
-                    lectura.contenido.riesgo === "alto"
-                      ? "text-xs font-bold tracking-[0.18em] text-hold"
-                      : lectura.contenido.riesgo === "medio"
-                        ? "text-xs font-bold tracking-[0.18em] text-review"
-                        : "text-xs font-bold tracking-[0.18em] text-sage"
-                  }
-                >
+              <div className={CAJA_RIESGO[lectura.contenido.riesgo] ?? CAJA_RIESGO.bajo}>
+                <p className={TEXTO_RIESGO[lectura.contenido.riesgo] ?? TEXTO_RIESGO.bajo}>
                   RIESGO {ETIQUETA_RIESGO[lectura.contenido.riesgo] ?? "SIN CLASIFICAR"}
                 </p>
                 <p className="mt-2 text-[15px] leading-relaxed text-ink">
@@ -287,38 +305,75 @@ function ExpedientePage() {
                 </p>
               </div>
 
-              {lectura.contenido.contradicciones.length ? (
-                <div className="rounded-2xl border border-hold/40 bg-hold/5 p-5">
-                  <p className="text-xs font-bold tracking-[0.18em] text-hold">
-                    LO FIRMADO NO COINCIDE CON LO REPORTADO
-                  </p>
-                  <div className="mt-3 space-y-4">
-                    {lectura.contenido.contradicciones.map((c) => (
-                      <div key={c.declaro + c.reporta}>
-                        <p className="text-[15px] leading-relaxed text-ink-soft">
-                          <span className="text-ink">Firmó:</span> “{c.declaro}”
-                        </p>
-                        <p className="mt-1 text-[15px] leading-relaxed text-ink-soft">
-                          <span className="text-ink">Reportó:</span> “{c.reporta}”
-                        </p>
-                        <p className="mt-1 text-[15px] leading-relaxed text-ink-soft">{c.porQue}</p>
-                      </div>
-                    ))}
-                  </div>
+              {lectura.contenido.dominios.length ? (
+                <div className="grid gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-2">
+                  {lectura.contenido.dominios.map((dom, i, todas) => (
+                    <div
+                      key={dom.clave}
+                      className={`flex gap-3 bg-paper px-4 py-3 ${FONDO_ESTADO[dom.estado] ?? ""} ${
+                        // Con un número impar de casillas, la última se queda sola
+                        // y deja un hueco gris al lado. Que ocupe la fila entera.
+                        i === todas.length - 1 && todas.length % 2 === 1 ? "sm:col-span-2" : ""
+                      }`}
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={`w-[3px] shrink-0 rounded-sm ${BARRA_ESTADO[dom.estado] ?? "bg-line"}`}
+                      />
+                      <span className="min-w-0">
+                        <span className="flex flex-wrap items-baseline gap-x-2 text-[11px] font-bold tracking-[0.13em] text-muted">
+                          {(definicion(dom.clave)?.rotulo ?? dom.clave).toUpperCase()}
+                          {dom.etiqueta ? (
+                            <span className={COLOR_ESTADO[dom.estado] ?? "text-muted"}>
+                              · {dom.etiqueta}
+                            </span>
+                          ) : null}
+                        </span>
+                        <span className="mt-1 block text-[15px] leading-snug text-ink">
+                          {dom.linea}
+                        </span>
+                      </span>
+                    </div>
+                  ))}
                 </div>
               ) : null}
 
-              {lectura.contenido.alertas.length ? (
-                <div className="rounded-2xl border border-hold/40 bg-hold/5 p-5">
-                  <p className="text-xs font-bold tracking-[0.18em] text-hold">ATENCIÓN PRIMERO</p>
-                  <div className="mt-3 space-y-4">
-                    {lectura.contenido.alertas.map((a) => (
-                      <div key={a.tema}>
-                        <p className="text-sm font-medium text-ink">{a.tema}</p>
-                        <p className="mt-1 border-l-2 border-hold/40 pl-3 text-[15px] italic leading-relaxed text-ink-soft">
-                          “{a.cita}”
+              <div className="rounded-2xl border border-line bg-sand/30 p-5">
+                <p className="text-xs font-bold tracking-[0.18em] text-clay">PUNTO DE PARTIDA</p>
+                {lectura.contenido.sugerencia.medicina.trim() ? (
+                  <p className="mt-3 text-[15px] leading-relaxed text-ink">
+                    <span className="font-medium">{lectura.contenido.sugerencia.medicina}</span>
+                    {lectura.contenido.sugerencia.dosis
+                      ? ` · ${lectura.contenido.sugerencia.dosis}`
+                      : ""}
+                  </p>
+                ) : (
+                  <p className="mt-3 text-[15px] leading-relaxed text-ink">
+                    <span className="font-medium">Sin sugerencia de medicina todavía</span>
+                  </p>
+                )}
+                <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">
+                  {lectura.contenido.sugerencia.porQue}
+                </p>
+                <p className="mt-3 text-xs leading-relaxed text-muted">
+                  No es una indicación. Se decide en la entrevista, en el momento y de común
+                  acuerdo con quien participa.
+                </p>
+              </div>
+
+              {lectura.contenido.lavados.length ? (
+                <div>
+                  <p className="text-xs font-bold tracking-[0.18em] text-clay">
+                    SUSPENDER ANTES DEL RETIRO
+                  </p>
+                  <div className="mt-3 space-y-3">
+                    {lectura.contenido.lavados.map((l) => (
+                      <div key={l.sustancia}>
+                        <p className="text-[15px] leading-relaxed text-ink">
+                          <span className="font-medium">{l.sustancia}</span>
+                          {l.ventana ? ` — ${l.ventana}` : ""}
                         </p>
-                        <p className="mt-1 text-[15px] leading-relaxed text-ink-soft">{a.porQue}</p>
+                        <p className="mt-1 text-[15px] leading-relaxed text-ink-soft">{l.porQue}</p>
                       </div>
                     ))}
                   </div>
@@ -335,106 +390,55 @@ function ExpedientePage() {
                 </p>
               ) : null}
 
-              <div className="rounded-2xl border border-line bg-sand/30 p-5">
-                <p className="text-xs font-bold tracking-[0.18em] text-clay">
-                  PUNTO DE PARTIDA PARA LA ENTREVISTA
-                </p>
-                <p className="mt-3 text-[15px] leading-relaxed text-ink">
-                  <span className="font-medium">{lectura.contenido.sugerencia.medicina}</span>
-                  {lectura.contenido.sugerencia.dosis
-                    ? ` · ${lectura.contenido.sugerencia.dosis}`
-                    : ""}
-                </p>
-                <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">
-                  {lectura.contenido.sugerencia.porQue}
-                </p>
-                <p className="mt-3 text-xs leading-relaxed text-muted">
-                  No es una indicación. Se decide en la entrevista, en el momento y de común
-                  acuerdo con quien participa.
-                </p>
-              </div>
-
-              {lectura.contenido.lavados.length ? (
-                <div>
-                  <p className="text-xs font-bold tracking-[0.18em] text-review">
-                    SUSPENDER ANTES DEL RETIRO
-                  </p>
-                  <div className="mt-3 space-y-3">
-                    {lectura.contenido.lavados.map((l) => (
-                      <div key={l.sustancia} className="rounded-2xl border border-line p-4">
-                        <p className="text-sm text-ink">
-                          {l.sustancia} — <span className="text-review">{l.ventana}</span>
-                        </p>
-                        <p className="mt-1 text-[15px] leading-relaxed text-ink-soft">{l.porQue}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              {lectura.contenido.temas.length ? (
+              {lectura.contenido.preguntas.length ? (
                 <div>
                   <p className="text-xs font-bold tracking-[0.18em] text-clay">
-                    PARA ABRIR EN LA ENTREVISTA
+                    SI SOLO ALCANZAS TRES PREGUNTAS
                   </p>
-                  <div className="mt-3 space-y-4">
-                    {lectura.contenido.temas.map((t) => (
-                      <div key={t.tema} className="rounded-2xl border border-line bg-paper p-4">
-                        <p className="text-sm font-medium text-ink">{t.tema}</p>
-                        <p className="mt-1 border-l-2 border-line pl-3 text-[15px] italic leading-relaxed text-ink-soft">
-                          “{t.cita}”
+                  <ol className="mt-3 list-decimal space-y-2 pl-5">
+                    {lectura.contenido.preguntas.map((q) => (
+                      <li key={q} className="text-[15px] leading-relaxed text-ink">
+                        {q}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              ) : null}
+
+              {lectura.contenido.detalle.length ? (
+                <details className="border-t border-line pt-4">
+                  <summary className="cursor-pointer text-xs font-bold tracking-[0.18em] text-clay">
+                    LA FICHA DETRÁS DE CADA CASILLA
+                  </summary>
+                  <div className="mt-4 space-y-5">
+                    {lectura.contenido.detalle.map((det) => (
+                      <div key={det.tema}>
+                        <p className="text-sm font-medium text-ink">{det.tema}</p>
+                        {det.escribio.map((cita) => (
+                          <p
+                            key={cita}
+                            className="mt-1 border-l-2 border-sand pl-3 text-[15px] italic leading-relaxed text-ink-soft"
+                          >
+                            “{cita}”
+                          </p>
+                        ))}
+                        <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">
+                          {det.marco ? (
+                            <span className="mr-2 rounded-sm border border-clay/40 px-1.5 py-0.5 align-middle text-[10px] font-bold tracking-[0.11em] whitespace-nowrap text-clay uppercase">
+                              {det.marco}
+                            </span>
+                          ) : null}
+                          {det.leo}
                         </p>
-                        <p className="mt-1 text-[15px] leading-relaxed text-ink-soft">{t.porQue}</p>
                       </div>
                     ))}
                   </div>
-                </div>
-              ) : null}
-
-              {lectura.contenido.seguridad.length ? (
-                <div>
-                  <p className="text-xs font-bold tracking-[0.18em] text-review">
-                    MENCIONADO AL PASAR
-                  </p>
-                  <ul className="mt-3 space-y-2">
-                    {lectura.contenido.seguridad.map((x) => (
-                      <li key={x.tema} className="text-[15px] leading-relaxed text-ink-soft">
-                        <span className="text-ink">{x.tema}</span> — “{x.cita}”
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-
-              {lectura.contenido.huecos.length ? (
-                <div>
-                  <p className="text-xs font-bold tracking-[0.18em] text-clay">LA FICHA NO DICE</p>
-                  <ul className="mt-3 space-y-2">
-                    {lectura.contenido.huecos.map((h) => (
-                      <li key={h} className="text-[15px] leading-relaxed text-ink-soft">
-                        · {h}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-
-              {lectura.contenido.preguntasAbiertas.length ? (
-                <div>
-                  <p className="text-xs font-bold tracking-[0.18em] text-clay">POR VERIFICAR</p>
-                  <ul className="mt-3 space-y-2">
-                    {lectura.contenido.preguntasAbiertas.map((q) => (
-                      <li key={q} className="text-[15px] leading-relaxed text-ink-soft">
-                        · {q}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                </details>
               ) : null}
 
               <p className="text-xs leading-relaxed text-muted">
-                Lectura automática con los marcos de Isaac. No diagnostica ni decide admisión:
-                orienta la conversación. Generada el{" "}
+                Lectura automática con los marcos terapéuticos de Isaac. No diagnostica ni decide
+                admisión: orienta la conversación. Generada el{" "}
                 {new Date(lectura.creadaAt).toLocaleString("es-MX")} con {lectura.modelo}, marco
                 v{lectura.marcoVersion}.
                 {lectura.marcoVersion !== MARCO_VERSION_VIGENTE

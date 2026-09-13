@@ -1,49 +1,89 @@
 import { z } from "zod";
+import { CLAVES_DOMINIO, ESTADOS, ordenarDominios, soloDominiosConocidos } from "./dominios.ts";
 import type { LecturaFicha } from "./lectura-ficha.ts";
 
-const Observacion = z.object({
-  tema: z.string(),
-  cita: z.string(),
-  porQue: z.string(),
-});
-
 /**
- * Cuántos elementos cabe leer de un vistazo en cada lista.
+ * Cuántos elementos cabe leer de un vistazo.
  *
  * Los lavados llevan un tope holgado a propósito: si hay cinco sustancias que
  * suspender, son cinco, y ninguna se cae por cumplir una cuota.
  */
 export const TOPES = {
-  alertas: 3,
-  contradicciones: 3,
-  temas: 3,
-  seguridad: 4,
+  dominios: 12,
+  preguntas: 3,
+  detalle: 5,
   lavados: 8,
-  huecos: 4,
-  preguntasAbiertas: 5,
 } as const;
 
-const Contradiccion = z.object({
-  declaro: z.string(),
-  reporta: z.string(),
+/**
+ * Una casilla del tablero, tal como vuelve del modelo.
+ *
+ * `clave` y `estado` se aceptan como texto libre a propósito, aunque al modelo
+ * se le pidan de una lista cerrada: si inventa una clave, lo que se pierde es
+ * esa casilla —`soloDominiosConocidos` la tira— y no la lectura entera, que ya
+ * está completa y ya costó dinero. La misma lección que los topes.
+ */
+const Dominio = z.object({
+  clave: z.string(),
+  estado: z.string(),
+  /** Dos o tres palabras que matizan el estado: "dos choques", "sin señales". */
+  etiqueta: z.string(),
+  /** Una sola línea. Lo que se lee sin abrir nada. */
+  linea: z.string(),
+});
+
+/** La misma casilla, con la lista cerrada, para decirle al modelo qué existe. */
+const DominioPedido = Dominio.extend({
+  clave: z.enum(CLAVES_DOMINIO as [string, ...string[]]),
+  estado: z.enum(ESTADOS as unknown as [string, ...string[]]),
+});
+
+/**
+ * Una observación con su respaldo.
+ *
+ * `escribio` es literal de la ficha y `leo` es interpretación: van en campos
+ * distintos para que nunca se mezclen en la misma frase, que es lo que hacía
+ * imposible saber dónde terminaba una y empezaba la otra.
+ */
+const Detalle = z.object({
+  tema: z.string(),
+  escribio: z.array(z.string()),
+  leo: z.string(),
+  /**
+   * El marco terapéutico desde el que se lee, cuando de verdad viene de uno.
+   * Vacío el resto de las veces: una etiqueta puesta de adorno hace que deje de
+   * significar algo cuando sí aparece.
+   */
+  marco: z.string(),
+});
+
+const Lavado = z.object({ sustancia: z.string(), ventana: z.string(), porQue: z.string() });
+
+/**
+ * La sugerencia de punto de partida.
+ *
+ * `medicina` vacía significa "todavía no se sugiere", y es una salida válida:
+ * cuando hay que resolver una medicación con quien la prescribió, inventar una
+ * dosis es peor que decir por qué no la hay. El caso que lo enseñó terminó
+ * exactamente así —el psiquiatra hizo el desmonte y autorizó— y una sugerencia
+ * inventada habría estorbado esa conversación.
+ */
+const Sugerencia = z.object({
+  medicina: z.string(),
+  dosis: z.string(),
   porQue: z.string(),
 });
-const Mencion = z.object({ tema: z.string(), cita: z.string() });
-const Lavado = z.object({ sustancia: z.string(), ventana: z.string(), porQue: z.string() });
 
 const campos = {
   riesgo: z.enum(["bajo", "medio", "alto"]),
   alertaPrincipal: z.string(),
-  alertas: z.array(Observacion),
-  contradicciones: z.array(Contradiccion),
+  dominios: z.array(Dominio),
   lectura: z.string(),
   fase: z.string(),
-  temas: z.array(Observacion),
-  seguridad: z.array(Mencion),
+  sugerencia: Sugerencia,
+  preguntas: z.array(z.string()),
+  detalle: z.array(Detalle),
   lavados: z.array(Lavado),
-  sugerencia: z.object({ medicina: z.string(), dosis: z.string(), porQue: z.string() }),
-  huecos: z.array(z.string()),
-  preguntasAbiertas: z.array(z.string()),
 };
 
 /**
@@ -54,24 +94,21 @@ const campos = {
  */
 export const EsquemaLectura = z.object({
   ...campos,
-  alertas: campos.alertas.max(TOPES.alertas),
-  contradicciones: campos.contradicciones.max(TOPES.contradicciones),
-  temas: campos.temas.max(TOPES.temas),
-  seguridad: campos.seguridad.max(TOPES.seguridad),
+  dominios: z.array(DominioPedido).max(TOPES.dominios),
+  preguntas: campos.preguntas.max(TOPES.preguntas),
+  detalle: campos.detalle.max(TOPES.detalle),
   lavados: campos.lavados.max(TOPES.lavados),
-  huecos: campos.huecos.max(TOPES.huecos),
-  preguntasAbiertas: campos.preguntasAbiertas.max(TOPES.preguntasAbiertas),
 });
 
 /**
  * La forma que se acepta de vuelta, sin topes.
  *
- * Deliberadamente más permisiva que la que se pide: una lectura con un tema de
- * más está completa y costó dinero. Rechazarla por eso sería tirar el trabajo
+ * Deliberadamente más permisiva que la que se pide: una lectura con un elemento
+ * de más está completa y costó dinero. Rechazarla por eso sería tirar el trabajo
  * entero por una cuota; lo que se hace es recortarla al guardarla.
  *
- * Vive aparte de la llamada a la API porque se usa en dos momentos distintos:
- * al pedirle la lectura al modelo, y al releer una lectura vieja guardada en la
+ * Vive aparte de la llamada a la API porque se usa en dos momentos distintos: al
+ * pedirle la lectura al modelo, y al releer una lectura vieja guardada en la
  * base. Si el marco cambia de campos, una lectura guardada con la forma anterior
  * deja de pasar por aquí y se regenera, en vez de romper la página.
  */
@@ -89,16 +126,22 @@ export function lecturaCompleta(valor: unknown): LecturaFicha | null {
   return salida.success ? (salida.data as LecturaFicha) : null;
 }
 
-/** Recorta una lectura recién generada a lo que cabe leer de un vistazo. */
-export function recortarLectura(lectura: LecturaFicha): LecturaFicha {
+/**
+ * Deja una lectura recién generada lista para guardarse: recorta a lo que cabe
+ * de un vistazo, tira las casillas de clave inventada y pone el tablero en orden
+ * de urgencia.
+ */
+export function prepararLectura(lectura: LecturaFicha): LecturaFicha {
   return {
     ...lectura,
-    alertas: lectura.alertas.slice(0, TOPES.alertas),
-    contradicciones: lectura.contradicciones.slice(0, TOPES.contradicciones),
-    temas: lectura.temas.slice(0, TOPES.temas),
-    seguridad: lectura.seguridad.slice(0, TOPES.seguridad),
+    dominios: ordenarDominios(soloDominiosConocidos(lectura.dominios)).slice(0, TOPES.dominios),
+    preguntas: lectura.preguntas.slice(0, TOPES.preguntas),
+    detalle: lectura.detalle.slice(0, TOPES.detalle),
     lavados: lectura.lavados.slice(0, TOPES.lavados),
-    huecos: lectura.huecos.slice(0, TOPES.huecos),
-    preguntasAbiertas: lectura.preguntasAbiertas.slice(0, TOPES.preguntasAbiertas),
   };
+}
+
+/** Si la lectura llegó a sugerir una medicina, o dejó esa decisión para antes. */
+export function haySugerencia(lectura: LecturaFicha): boolean {
+  return Boolean(lectura.sugerencia.medicina.trim());
 }
