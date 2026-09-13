@@ -32,9 +32,20 @@ function EvaluacionesPage() {
         <p className="eyebrow">Evaluaciones</p>
         <h1 className="mt-3 text-3xl font-normal sm:text-4xl">Instrumentos de tamizaje</h1>
         <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
-          Escalas autoaplicadas de uso clínico. Ninguna diagnostica: orientan una conversación.
-          Los resultados se quedan en este dispositivo y no se envían a nadie.
+          Escalas de uso clínico. Ninguna diagnostica y ninguna se responde en soledad: se
+          aplican durante la entrevista, con Isaac Calderón o Claudia Saviñón presentes — sea
+          que ellos las lean en voz alta o que tú las contestes mientras conversan.
         </p>
+        <div className="mt-5 rounded-2xl border border-clay/30 bg-sand/40 p-5">
+          <p className="text-[15px] leading-relaxed text-ink">
+            Si llegaste aquí por un enlace que te compartieron, espera a tu entrevista para
+            responderlas. Una escala contestada sin acompañamiento puede inquietar sin que
+            haya nadie para conversarlo.
+          </p>
+          <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">
+            Los resultados se quedan en este dispositivo: no se guardan ni se envían solos.
+          </p>
+        </div>
 
         <div className="mt-12 space-y-12">
           {porCategoria.map(({ cat, tests }) => (
