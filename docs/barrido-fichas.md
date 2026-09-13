@@ -133,5 +133,7 @@ Lo que el barrido dejó como tarea del formulario, no del sistema:
 1. La declaración nombra categorías (ISRS, IMAO, anticonvulsivos) y la gente
    conoce nombres comerciales. Una lista de medicamentos junto a la casilla
    evitaría la mitad de los seis choques.
+   *Resuelto del lado del sistema en `src/lib/clinica/farmacos.ts`: genéricos y
+   comerciales, y la bandera nombra la clase. Falta del lado del formulario.*
 2. El formulario pregunta *si* participó antes, nunca *cómo fue*. Ninguna lectura
    puede recuperar un dato que nadie pidió.

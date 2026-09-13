@@ -239,9 +239,71 @@ por campo, y nombra cada choque en "contradicciones".
 Casos reales que se han escapado: alguien firma la declaración y en otro campo
 reporta sertralina diaria; alguien la firma y reporta duloxetina —que es un
 IRSN, no un ISRS, pero es antidepresivo igual— junto con pregabalina, que es un
-anticonvulsivo. No es que mientan: es que no saben que su medicamento entra en
-esa lista. Por eso lo tienes que cotejar tú, y por eso va con las dos citas
-enfrentadas.
+anticonvulsivo. En las 30 fichas revisadas, SEIS firmaron y nombraron en su
+propia ficha un fármaco de la lista: una de cada cinco.
+
+No es que mientan: es que no saben que su medicamento entra en esa lista. La
+declaración nombra categorías —ISRS, IMAO, anticonvulsivos— y la gente conoce
+nombres. Por eso lo tienes que cotejar tú, fármaco por fármaco, y por eso va con
+las dos citas enfrentadas.
+
+LOS NOMBRES QUE HAY QUE RECONOCER
+
+Genérico primero, nombres comerciales entre paréntesis. La lista no es
+exhaustiva: si aparece algo parecido que no está aquí, dilo igual.
+
+ISRS — los que la declaración nombra por sus siglas:
+- fluoxetina (Prozac, Siquial, Fluoxac)
+- sertralina (Altruline, Zoloft, Aremis)
+- paroxetina (Paxil, Aropax, Seroxat)
+- escitalopram (Lexapro, Cipralex, Meridian)
+- citalopram (Seropram, Celexa)
+- fluvoxamina (Luvox)
+
+IRSN y otros antidepresivos — no son ISRS, pero pesan igual:
+- venlafaxina (Efexor, Odven)
+- desvenlafaxina (Pristiq, Ellefore)
+- duloxetina (Cymbalta, Duxetin)
+- bupropión (Wellbutrin, Zyntabac)
+- mirtazapina (Remeron, Comenter)
+- trazodona (Sideril, Taxagon)
+- amitriptilina, imipramina, clomipramina (tricíclicos: Tryptanol, Tofranil, Anafranil)
+
+IMAO — poco frecuentes y de los más peligrosos:
+- tranilcipromina (Parnate), fenelzina (Nardil), moclobemida (Aurorix),
+  selegilina (Jumex), rasagilina (Azilect)
+- hierba de San Juan / hipérico (Hypericum): se compra sin receta, la gente la
+  cuenta como "suplemento natural" y no como medicamento. Búscala.
+
+ANTICONVULSIVOS Y ESTABILIZADORES:
+- pregabalina (Lyrica), gabapentina (Neurontin, Gabantin)
+- lamotrigina (Lamictal), valproato / ácido valproico (Epival, Depakote)
+- carbamazepina (Tegretol), oxcarbazepina (Trileptal)
+- topiramato (Topamax), levetiracetam (Keppra), fenitoína (Epamin)
+- litio (Carbolit)
+
+NO ESTÁN EN LA DECLARACIÓN Y SON RIESGO SEROTONINÉRGICO IGUAL:
+- tramadol (Tramal, Nobligan): se receta para dolor y casi nadie lo cuenta como
+  psicofármaco.
+- triptanes para migraña: sumatriptán (Imigran), rizatriptán (Maxalt).
+- dextrometorfano, en jarabes para la tos que se compran sin receta.
+- linezolid, un antibiótico que es IMAO.
+Si aparecen, van en lavados o en la casilla que corresponda, aunque la
+declaración no los nombre: la declaración es una lista corta, no el criterio.
+
+ANTIPSICÓTICOS — no están en la declaración, pero cambian el cuadro:
+- quetiapina (Seroquel), olanzapina (Zyprexa), risperidona (Risperdal),
+  aripiprazol (Abilify)
+
+VIGENTE NO ES LO MISMO QUE SUSPENDIDO
+
+De los seis choques reales, la mitad describía el fármaco como vigente y la otra
+mitad como ya suspendido. Son dos decisiones clínicas distintas y el tablero
+tiene que distinguirlas: "lo toma hoy" pide resolver antes de cualquier cosa;
+"lo dejó hace meses" pide confirmar la fecha y que no haya habido reinicio.
+
+Y una suspensión no la decide el retiro. Si alguien lleva años con un
+antidepresivo, quien puede suspenderlo es quien lo prescribió: dilo así.
 
 ANTECEDENTES FAMILIARES DE PSICOSIS
 

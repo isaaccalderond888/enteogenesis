@@ -1,3 +1,5 @@
+import { clasesEncontradas, farmacosEnTexto } from "./clinica/farmacos.ts";
+
 export type YesNo = "" | "si" | "no";
 
 export type BodyItem = {
@@ -360,12 +362,28 @@ export function safetyFlags(data: Application): SafetyFlag[] {
     add("hold", "Salud mental", data.enfermedadMental);
   }
 
-  const meds = data.medicamentos.toLowerCase();
-  if (
-    /isrs|ssri|imao|maoi|antidepres|sertralina|fluoxetina|paroxetina|escitalopram|venlafaxina|anticonvuls/.test(
-      meds,
+  // Los fármacos no viven sólo en el campo de medicamentos. En las fichas reales
+  // aparecen al describir la salud mental, entre las sustancias que se consumen,
+  // o como "otro padecimiento": mirar un solo campo dejaba pasar la mitad.
+  const hallazgos = [
+    data.medicamentos,
+    data.enfermedadMental,
+    data.sustanciasHistorial,
+    data.otroPadecimiento,
+  ].flatMap((texto) => farmacosEnTexto(texto).map((h) => ({ ...h, texto })));
+
+  if (hallazgos.length) {
+    // La clase va en la etiqueta porque es justo lo que quien firmó no sabía:
+    // duloxetina es IRSN y pregabalina anticonvulsivo, y ninguna se llama "ISRS".
+    const clases = clasesEncontradas(hallazgos).join(", ");
+    const nombres = [...new Set(hallazgos.map((h) => h.generico))].join(", ");
+    add("hold", `Medicación contraindicada · ${clases}`, `${nombres} — ${hallazgos[0].texto}`);
+  } else if (
+    /\bisrs\b|\bssri\b|\bimao\b|\bmaoi\b|antidepres|anticonvuls/.test(
+      data.medicamentos.toLowerCase(),
     )
   ) {
+    // Nombró la categoría sin nombrar el fármaco: cuenta igual.
     add("hold", "Medicación contraindicada", data.medicamentos);
   } else if (data.medicamentos.trim() && !isNegation(data.medicamentos)) {
     add("review", "Medicación actual", data.medicamentos);
