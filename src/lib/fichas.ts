@@ -12,6 +12,7 @@ import {
 import { authMiddleware } from "@/lib/auth/middleware";
 import { getSql } from "@/lib/db";
 import { SITE } from "@/lib/site";
+import type { LecturaFicha } from "@/lib/clinica/lectura-ficha";
 
 export const STATUSES = [
   { id: "nueva", label: "Nueva" },
@@ -243,5 +244,76 @@ export const listStaff = createServerFn({ method: "GET" })
     return {
       staff: people.map((p) => p.email).filter(Boolean),
       invites: invites.map((p) => p.email),
+    };
+  });
+
+export type LecturaGuardada = {
+  contenido: LecturaFicha;
+  modelo: string;
+  marcoVersion: string;
+  creadaAt: string;
+};
+
+/** La lectura vigente de una ficha, si ya se generó. */
+export const getLectura = createServerFn({ method: "GET" })
+  .middleware([authMiddleware])
+  .validator((id: string) => id)
+  .handler(async ({ context, data: id }): Promise<LecturaGuardada | null> => {
+    await requireStaff(context.userId);
+    const sql = await getSql();
+    const filas = await sql<{
+      contenido: string;
+      modelo: string;
+      marco_version: string;
+      creada_at: string;
+    }>`select contenido, modelo, marco_version, creada_at from lecturas where ficha_id = ${id} limit 1`;
+    const fila = filas[0];
+    if (!fila) return null;
+    try {
+      return {
+        contenido: JSON.parse(fila.contenido) as LecturaFicha,
+        modelo: fila.modelo,
+        marcoVersion: fila.marco_version,
+        creadaAt: String(fila.creada_at),
+      };
+    } catch {
+      // Una lectura ilegible equivale a no tenerla: se regenera.
+      return null;
+    }
+  });
+
+/**
+ * Genera la lectura clínica de una ficha y la guarda, reemplazando la anterior.
+ *
+ * Sólo staff, y nunca automático al cerrar la ficha: cuesta dinero y es una
+ * decisión de quien va a leerla, no del formulario.
+ */
+export const generarLectura = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((id: string) => id)
+  .handler(async ({ context, data: id }): Promise<LecturaGuardada> => {
+    await requireStaff(context.userId);
+    const sql = await getSql();
+    const filas = await sql<{ payload: string }>`select payload from fichas where id = ${id} limit 1`;
+    if (!filas[0]) throw new Error("No existe esa ficha.");
+
+    const { leerFicha, MODELO, MARCO_VERSION } = await import("@/lib/clinica/lectura.server");
+    const contenido = await leerFicha(parsePayload(filas[0].payload));
+    const texto = JSON.stringify(contenido);
+
+    await sql`
+      insert into lecturas (ficha_id, contenido, modelo, marco_version, creada_at)
+      values (${id}, ${texto}, ${MODELO}, ${MARCO_VERSION}, now())
+      on conflict (ficha_id) do update
+        set contenido = excluded.contenido,
+            modelo = excluded.modelo,
+            marco_version = excluded.marco_version,
+            creada_at = excluded.creada_at
+    `;
+    return {
+      contenido,
+      modelo: MODELO,
+      marcoVersion: MARCO_VERSION,
+      creadaAt: new Date().toISOString(),
     };
   });

@@ -12,6 +12,9 @@ import {
   updateFichaStatus,
   type FichaDetail,
   type FichaStatus,
+  getLectura,
+  generarLectura,
+  type LecturaGuardada,
 } from "@/lib/fichas";
 
 export const Route = createFileRoute("/expedientes_/$id")({
@@ -31,6 +34,9 @@ function ExpedientePage() {
   const [notes, setNotes] = useState("");
   const [saved, setSaved] = useState(false);
   const [noteError, setNoteError] = useState<string | null>(null);
+  const [lectura, setLectura] = useState<LecturaGuardada | null | undefined>(undefined);
+  const [generando, setGenerando] = useState(false);
+  const [errorLectura, setErrorLectura] = useState<string | null>(null);
 
   useEffect(() => {
     if (isPending || !user) return;
@@ -43,6 +49,13 @@ function ExpedientePage() {
       })
       .catch(() => {
         if (!cancelled) setRow(null);
+      });
+    getLectura({ data: id })
+      .then((l) => {
+        if (!cancelled) setLectura(l);
+      })
+      .catch(() => {
+        if (!cancelled) setLectura(null);
       });
     return () => {
       cancelled = true;
@@ -191,6 +204,136 @@ function ExpedientePage() {
               <p className="mt-1 text-ink">{d.emergencia}</p>
             </div>
           ) : null}
+        </section>
+
+        <section className="mt-10">
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-xs font-bold tracking-[0.18em] text-clay">LECTURA CLÍNICA</p>
+            <button
+              type="button"
+              disabled={generando}
+              onClick={() => {
+                setGenerando(true);
+                setErrorLectura(null);
+                void generarLectura({ data: id })
+                  .then(setLectura)
+                  .catch((err: unknown) =>
+                    setErrorLectura(
+                      err instanceof Error ? err.message : "No se pudo generar la lectura.",
+                    ),
+                  )
+                  .finally(() => setGenerando(false));
+              }}
+              className="no-print inline-flex h-10 items-center rounded-full border border-line px-4 text-sm hover:border-ink/40 disabled:opacity-40"
+            >
+              {generando ? "Leyendo…" : lectura ? "Regenerar" : "Generar lectura"}
+            </button>
+          </div>
+
+          {errorLectura ? (
+            <p className="mt-3 rounded-2xl border border-hold/30 bg-hold/5 px-4 py-3 text-sm text-hold">
+              {errorLectura}
+            </p>
+          ) : null}
+
+          {lectura === undefined ? (
+            <p className="mt-3 text-sm text-muted">Cargando…</p>
+          ) : lectura === null ? (
+            <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">
+              Todavía no se ha generado. No es automática: cuesta y es decisión de quien va a
+              leer la ficha.
+            </p>
+          ) : (
+            <div className="mt-4 space-y-6">
+              {lectura.contenido.alertas.length ? (
+                <div className="rounded-2xl border border-hold/40 bg-hold/5 p-5">
+                  <p className="text-xs font-bold tracking-[0.18em] text-hold">ATENCIÓN PRIMERO</p>
+                  <div className="mt-3 space-y-4">
+                    {lectura.contenido.alertas.map((a) => (
+                      <div key={a.tema}>
+                        <p className="text-sm font-medium text-ink">{a.tema}</p>
+                        <p className="mt-1 border-l-2 border-hold/40 pl-3 text-[15px] italic leading-relaxed text-ink-soft">
+                          “{a.cita}”
+                        </p>
+                        <p className="mt-1 text-[15px] leading-relaxed text-ink-soft">{a.porQue}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              <p className="whitespace-pre-line text-[15px] leading-relaxed text-ink-soft">
+                {lectura.contenido.lectura}
+              </p>
+
+              {lectura.contenido.temas.length ? (
+                <div>
+                  <p className="text-xs font-bold tracking-[0.18em] text-clay">
+                    PARA ABRIR EN LA ENTREVISTA
+                  </p>
+                  <div className="mt-3 space-y-4">
+                    {lectura.contenido.temas.map((t) => (
+                      <div key={t.tema} className="rounded-2xl border border-line bg-paper p-4">
+                        <p className="text-sm font-medium text-ink">{t.tema}</p>
+                        <p className="mt-1 border-l-2 border-line pl-3 text-[15px] italic leading-relaxed text-ink-soft">
+                          “{t.cita}”
+                        </p>
+                        <p className="mt-1 text-[15px] leading-relaxed text-ink-soft">{t.porQue}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {lectura.contenido.seguridad.length ? (
+                <div>
+                  <p className="text-xs font-bold tracking-[0.18em] text-review">
+                    MENCIONADO AL PASAR
+                  </p>
+                  <ul className="mt-3 space-y-2">
+                    {lectura.contenido.seguridad.map((x) => (
+                      <li key={x.tema} className="text-[15px] leading-relaxed text-ink-soft">
+                        <span className="text-ink">{x.tema}</span> — “{x.cita}”
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              {lectura.contenido.huecos.length ? (
+                <div>
+                  <p className="text-xs font-bold tracking-[0.18em] text-clay">LA FICHA NO DICE</p>
+                  <ul className="mt-3 space-y-2">
+                    {lectura.contenido.huecos.map((h) => (
+                      <li key={h} className="text-[15px] leading-relaxed text-ink-soft">
+                        · {h}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              {lectura.contenido.preguntasAbiertas.length ? (
+                <div>
+                  <p className="text-xs font-bold tracking-[0.18em] text-clay">POR VERIFICAR</p>
+                  <ul className="mt-3 space-y-2">
+                    {lectura.contenido.preguntasAbiertas.map((q) => (
+                      <li key={q} className="text-[15px] leading-relaxed text-ink-soft">
+                        · {q}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              <p className="text-xs leading-relaxed text-muted">
+                Lectura automática con los marcos de Isaac. No diagnostica ni decide admisión:
+                orienta la conversación. Generada el{" "}
+                {new Date(lectura.creadaAt).toLocaleString("es-MX")} con {lectura.modelo}, marco
+                v{lectura.marcoVersion}.
+              </p>
+            </div>
+          )}
         </section>
 
         <label className="no-print mt-8 block text-sm">
