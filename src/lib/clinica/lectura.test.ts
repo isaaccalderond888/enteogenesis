@@ -43,13 +43,26 @@ function clienteFalso(salida: unknown, extra: Record<string, unknown> = {}) {
   const visto: { args?: Record<string, unknown> } = {};
   const cliente: ClienteLectura = {
     messages: {
-      parse: async (args: unknown) => {
+      stream: (args: unknown) => {
         visto.args = args as Record<string, unknown>;
-        return { parsed_output: salida, ...extra };
+        return { finalMessage: async () => ({ parsed_output: salida, ...extra }) };
       },
     },
   };
   return { cliente, visto };
+}
+
+/** Cliente que revienta al cerrar el flujo, como cuando el texto vino cortado. */
+function clienteQueRevienta(mensaje: string): ClienteLectura {
+  return {
+    messages: {
+      stream: () => ({
+        finalMessage: async () => {
+          throw new Error(mensaje);
+        },
+      }),
+    },
+  };
 }
 
 function ficha(): Application {
@@ -174,4 +187,64 @@ test("lo que no es una lectura se descarta sin lanzar", async () => {
   for (const basura of [null, undefined, 0, "", "texto suelto", [], {}]) {
     assert.equal(lecturaCompleta(basura), null);
   }
+});
+
+test("pide bastante presupuesto: el modelo piensa con cargo al mismo total", async () => {
+  // Con 8000 una ficha larga se quedaba sin espacio y el JSON llegaba cortado.
+  const { cliente, visto } = clienteFalso(RESPUESTA);
+  await leerFicha(ficha(), cliente);
+  assert.ok(
+    (visto.args?.max_tokens as number) >= 32000,
+    "el presupuesto debería dejar margen para pensar y escribir la lectura entera",
+  );
+});
+
+test("usa flujo, no una sola respuesta: un presupuesto grande tarda", async () => {
+  const { cliente } = clienteFalso(RESPUESTA);
+  const r = await leerFicha(ficha(), cliente);
+  assert.equal(r.riesgo, "alto");
+});
+
+test("una lectura cortada a media frase da un aviso legible, no jerga de JSON", async () => {
+  const cliente = clienteQueRevienta(
+    "Failed to parse structured output as JSON: Unterminated string in JSON at position 13462",
+  );
+  await assert.rejects(
+    () => leerFicha(ficha(), cliente),
+    (error: unknown) => {
+      assert.ok(error instanceof LecturaNoDisponible);
+      assert.match(error.message, /se cortó antes de terminar/i);
+      assert.match(error.message, /vuelve a intentarlo/i);
+      return true;
+    },
+  );
+});
+
+test("el aviso en pantalla no arrastra la jerga del error crudo", async () => {
+  // Isaac no es programador y lee esto a media entrevista: "Unterminated string
+  // in JSON at position 13462" no le dice nada. Eso va al registro del servidor.
+  const cliente = clienteQueRevienta(
+    "Failed to parse structured output as JSON: Unterminated string at position 13462",
+  );
+  await assert.rejects(
+    () => leerFicha(ficha(), cliente),
+    (error: unknown) => {
+      assert.ok(error instanceof LecturaNoDisponible);
+      assert.doesNotMatch(error.message, /JSON|position|parse|Error:/i);
+      assert.ok(error.message.length < 200, "el aviso debería caber en pantalla");
+      return true;
+    },
+  );
+});
+
+test("una respuesta que topó con el límite no se guarda a medias", async () => {
+  const { cliente } = clienteFalso(RESPUESTA, { stop_reason: "max_tokens" });
+  await assert.rejects(
+    () => leerFicha(ficha(), cliente),
+    (error: unknown) => {
+      assert.ok(error instanceof LecturaNoDisponible);
+      assert.match(error.message, /incompleta/i);
+      return true;
+    },
+  );
 });

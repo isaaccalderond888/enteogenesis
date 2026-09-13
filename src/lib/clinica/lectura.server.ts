@@ -12,10 +12,24 @@ import { EsquemaLectura } from "./esquema.ts";
 export const MODELO = "claude-opus-5";
 export const MARCO_VERSION = "1";
 
+/**
+ * Presupuesto de salida de una lectura.
+ *
+ * El modelo piensa antes de escribir y ese razonamiento se descuenta del mismo
+ * presupuesto que la respuesta. Con 8000 una ficha larga se quedaba sin espacio
+ * a media frase y el JSON llegaba cortado ("Unterminated string"). 32000 deja
+ * margen de sobra para lo que piensa más la lectura completa.
+ */
+const MAX_TOKENS = 32000;
+
 /** Lo mínimo que necesita la función para hablar con la API. Facilita probarla. */
+export type RespuestaLectura = {
+  parsed_output: unknown;
+  stop_reason?: string | null;
+};
 export type ClienteLectura = {
   messages: {
-    parse: (args: unknown) => Promise<{ parsed_output: unknown; stop_reason?: string | null }>;
+    stream: (args: unknown) => { finalMessage: () => Promise<RespuestaLectura> };
   };
 };
 
@@ -37,9 +51,9 @@ export async function leerFicha(
 ): Promise<LecturaFicha> {
   const api = cliente ?? (crearCliente() as unknown as ClienteLectura);
 
-  const respuesta = await api.messages.parse({
+  const flujo = api.messages.stream({
     model: MODELO,
-    max_tokens: 8000,
+    max_tokens: MAX_TOKENS,
     thinking: { type: "adaptive" },
     system: [
       { type: "text", text: MARCO_LECTURA_FICHA, cache_control: { type: "ephemeral" } },
@@ -53,9 +67,26 @@ export async function leerFicha(
     output_config: { format: zodOutputFormat(EsquemaLectura) },
   });
 
+  let respuesta: RespuestaLectura;
+  try {
+    respuesta = await flujo.finalMessage();
+  } catch (error) {
+    // El SDK arma la lectura al cerrar el flujo y ahí revienta si el texto vino
+    // cortado. El error crudo habla de JSON y de posiciones; quien lo va a leer
+    // es Isaac o Claudia a media entrevista, no un programador: el detalle va al
+    // registro del servidor y a la pantalla va una frase que se entiende.
+    console.error("[lectura] falló al cerrar el flujo:", error);
+    throw new LecturaNoDisponible("La lectura se cortó antes de terminar. Vuelve a intentarlo.");
+  }
+
   // Una negativa del modelo llega con HTTP 200, no como excepción.
   if (respuesta.stop_reason === "refusal") {
     throw new LecturaNoDisponible("El modelo declinó producir la lectura de esta ficha.");
+  }
+  if (respuesta.stop_reason === "max_tokens") {
+    throw new LecturaNoDisponible(
+      "La lectura salió más larga de lo que cabe en una respuesta y quedó incompleta.",
+    );
   }
   const salida = EsquemaLectura.safeParse(respuesta.parsed_output);
   if (!salida.success) {
@@ -63,6 +94,7 @@ export async function leerFicha(
   }
   return salida.data;
 }
+
 
 function crearCliente(): Anthropic {
   if (!process.env.ANTHROPIC_API_KEY?.trim()) {
