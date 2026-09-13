@@ -4,7 +4,6 @@ import {
   CATEGORY_LABELS,
   CATEGORY_ORDER,
   TEST_CONFIGS,
-  type TestCategory,
   type TestId,
 } from "@/lib/evaluaciones/tests";
 
