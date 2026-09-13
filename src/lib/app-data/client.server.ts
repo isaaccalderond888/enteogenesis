@@ -278,7 +278,10 @@ function tokenIdentityKey(token: string): string {
             .digest("base64url");
         }
       }
-    } catch {}
+    } catch {
+      // Un token con forma inesperada cae al hash del token completo, que es el
+      // camino de abajo: no hay nada que registrar ni que reintentar aquí.
+    }
   }
   return createHash("sha256").update(token).digest("base64url");
 }

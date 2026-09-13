@@ -96,15 +96,6 @@ const TERRITORIOS = [
   { t: "Naturaleza y contexto", q: "¿Cambió mi relación con el mundo natural, mi comunidad o las culturas de las que provienen ciertas prácticas? ¿Cómo puedo responder con reciprocidad?" },
 ];
 
-const MAPA = [
-  "Lo que viví",
-  "Lo que siento en el cuerpo al recordarlo",
-  "El significado provisional que le doy hoy",
-  "Lo que todavía no sé",
-  "Una acción pequeña y verificable",
-  "La persona o recurso que puede sostenerme",
-];
-
 const SANO = [
   "Recuperas o mejoras gradualmente el sueño y las rutinas.",
   "Puedes sostener ambigüedad sin actuar impulsivamente.",
