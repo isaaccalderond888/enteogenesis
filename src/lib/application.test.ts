@@ -89,11 +89,49 @@ test("tiroides y alergias piden revisar, no pausan", () => {
 
 test("un antidepresivo ISRS pausa; otro medicamento sólo pide revisar", () => {
   const isrs = safetyFlags(fichaValida({ medicamentos: "Sertralina 50mg" }));
-  assert.equal(isrs.some((f) => f.level === "hold" && f.label === "Medicación contraindicada"), true);
+  assert.equal(
+    isrs.some((f) => f.level === "hold" && f.label.startsWith("Medicación contraindicada")),
+    true,
+  );
 
   const otro = safetyFlags(fichaValida({ medicamentos: "Levotiroxina 50mcg" }));
   assert.equal(otro.some((f) => f.level === "hold"), false);
   assert.equal(otro.some((f) => f.level === "review" && f.label === "Medicación actual"), true);
+});
+
+test("el fármaco se busca en todos los campos, no sólo en el de medicamentos", () => {
+  // En las fichas reales aparece al describir la salud mental, entre las
+  // sustancias que se consumen, o como "otro padecimiento". Mirar un solo campo
+  // dejaba pasar la mitad de los casos.
+  for (const campo of [
+    { enfermedadMental: "Escitalopram de 10mg todas las noches desde hace 6 años" },
+    { sustanciasHistorial: "Nicotina, cafeína, marihuana, sertralina y alcohol" },
+    { otroPadecimiento: "Fibromialgia tratada con pregabalina" },
+  ]) {
+    const flags = safetyFlags(fichaValida({ medicamentos: "No", ...campo }));
+    assert.equal(
+      flags.some((f) => f.level === "hold" && f.label.startsWith("Medicación contraindicada")),
+      true,
+      `debería encontrarlo en ${Object.keys(campo)[0]}`,
+    );
+  }
+});
+
+test("la bandera nombra la clase, que es lo que la persona no sabe", () => {
+  // Quien firma "no uso ISRS" y toma duloxetina no miente: duloxetina es IRSN.
+  const flags = safetyFlags(fichaValida({ medicamentos: "duloxetina 30 mg y pregabalina 75 mg" }));
+  const bandera = flags.find((f) => f.label.startsWith("Medicación contraindicada"));
+  assert.match(bandera?.label ?? "", /IRSN/);
+  assert.match(bandera?.label ?? "", /anticonvulsivo/);
+});
+
+test("el nombre comercial levanta la misma bandera que el genérico", () => {
+  // Nadie escribe "escitalopram" si la caja dice Lexapro.
+  const flags = safetyFlags(fichaValida({ medicamentos: "Lexapro 10mg en las noches" }));
+  assert.equal(
+    flags.some((f) => f.level === "hold" && f.label.startsWith("Medicación contraindicada")),
+    true,
+  );
 });
 
 test("no aceptar la declaración pausa la ficha", () => {

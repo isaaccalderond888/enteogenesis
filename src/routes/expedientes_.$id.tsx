@@ -39,28 +39,28 @@ const ETIQUETA_RIESGO: Record<string, string> = {
 const CAJA_RIESGO: Record<string, string> = {
   alto: "rounded-2xl border border-hold/40 bg-hold/5 p-5",
   medio: "rounded-2xl border border-review/40 bg-review/5 p-5",
-  bajo: "rounded-2xl border border-line bg-paper p-5",
+  bajo: "rounded-2xl border border-clear/40 bg-clear/5 p-5",
 };
 
 const TEXTO_RIESGO: Record<string, string> = {
   alto: "text-xs font-bold tracking-[0.18em] text-hold",
   medio: "text-xs font-bold tracking-[0.18em] text-review",
-  bajo: "text-xs font-bold tracking-[0.18em] text-sage",
+  bajo: "text-xs font-bold tracking-[0.18em] text-clear",
 };
 
 /** El color de una casilla del tablero dice qué hacer con ella. */
 const BARRA_ESTADO: Record<string, string> = {
   atender: "bg-hold",
   revisar: "bg-review",
-  falta: "bg-sand",
-  ok: "bg-sage",
+  falta: "bg-clay",
+  ok: "bg-clear",
 };
 
 const COLOR_ESTADO: Record<string, string> = {
   atender: "text-hold",
   revisar: "text-review",
   falta: "text-clay",
-  ok: "text-sage",
+  ok: "text-clear",
 };
 
 /** Sólo lo que hay que atender se tiñe: si todo se tiñe, nada resalta. */

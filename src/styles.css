@@ -16,6 +16,13 @@
   --color-taupe: #8f806a;
   --color-hold: #8b0000;
   --color-review: #9a6b2f;
+  /*
+   * El verde del semáforo clínico. Sale de la gama de la marca a propósito:
+   * `sage` es un verde grisáceo pensado para acompañar, y al lado del rojo y el
+   * ámbar no se leía como un estado. Éste pesa lo mismo que los otros dos, que
+   * es lo único que le pide un semáforo.
+   */
+  --color-clear: #457a3d;
   --shadow-border:
     0px 0px 0px 1px rgba(26, 24, 20, 0.06),
     0px 1px 2px -1px rgba(26, 24, 20, 0.06),
