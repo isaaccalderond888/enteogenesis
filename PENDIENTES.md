@@ -111,15 +111,34 @@ Claudia Saviñón e Isaura Maro revisan todo el texto del sitio y deciden **qué
 escalas se quedan**. Las 17 permanecen disponibles mientras tanto, sin enlaces,
 para poder mandarlas a revisión una por una.
 
-## 6. Línea de emergencia
+## 6. Línea de emergencia — a medias
 
-Cambiar el bloque de crisis para que aparezcan **primero los tres contactos**
-(Isaac, Claudia, Isaura) y la línea quede debajo como red de seguridad.
+Claudia preguntó dos cosas sobre esto y una ya está resuelta.
 
-`src/lib/site.ts` trae hoy `Línea de la Vida · 800 911 2000`, heredada del
-código original. **Sin verificar.** Antes de publicarla hay que marcar y
-confirmar que contesta; alternativas a evaluar: SAPTEL (Cruz Roja Mexicana) y la
-línea de apoyo psicológico de Locatel para CDMX.
+**Resuelto: el bajón normal y el riesgo vital dejaron de ir en la misma frase.**
+Su pregunta era exactamente esa —«si en el después les da un bajón, ¿deberían
+llamar a la línea de vida o sólo a nosotros?»— y mezclarlos hacía dos daños:
+patologizaba un bajón que es esperable, y dejaba a alguien en riesgo real sin
+saber a quién llamar. En `/preparacion` ahora el bajón va a los facilitadores, y
+la urgencia va aparte.
+
+**Falta: los tres contactos.** El bloque debería nombrar a Isaac, Claudia e
+Isaura con su teléfono, y dejar la línea pública debajo como red de seguridad.
+No están puestos porque no tengo los números, y no se inventan.
+
+`src/lib/site.ts` trae `Línea de la Vida · 800 911 2000`, heredada del código
+original. Es el número público del servicio nacional, pero **no se pudo marcar
+desde aquí para confirmar que contesta**. Alternativas a evaluar: SAPTEL (Cruz
+Roja Mexicana) y la línea de apoyo psicológico de Locatel para CDMX.
+
+## 6b. Lo que Claudia pidió y quedó fuera
+
+De su lista de comentarios se aplicó todo menos esto, que es decisión de ustedes:
+
+- **La logística de Terrasana** —cómo llegar, qué traer, horarios, transporte—
+  vive en el PDF que se manda aparte. Claudia pidió quitar «cómo llegar» de la
+  guía del sitio, así que no se duplicó aquí. Si quieren que también viva en el
+  sitio, el contenido ya existe y es media hora.
 
 ## 7. Deuda heredada de la plantilla — resuelto
 

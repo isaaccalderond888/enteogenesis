@@ -237,6 +237,15 @@ export function validateStep(step: number, data: Application): string | null {
     case 1: {
       if (!filled(data.nombreCompleto)) return "Escribe tu nombre completo.";
       if (!filled(data.fechaNacimiento)) return "Indica tu fecha de nacimiento.";
+      {
+        const edad = ageFromIso(data.fechaNacimiento);
+        if (edad === null)
+          return "Revisa tu fecha de nacimiento: el año no parece correcto.";
+        if (edad < EDAD_MINIMA)
+          return `Este trabajo es para mayores de ${EDAD_MINIMA} años.`;
+        if (edad > EDAD_MAXIMA)
+          return "Revisa tu fecha de nacimiento: el año no parece correcto.";
+      }
       if (!data.sexoAlNacer) return "Selecciona el sexo asignado al nacer.";
       if (!data.identidadGenero) return "Selecciona tu identidad de género.";
       if (data.identidadGenero === "Otra" && !data.identidadGeneroOtra.trim())
@@ -398,6 +407,26 @@ export function safetyFlags(data: Application): SafetyFlag[] {
 export function retreatLabel(data: Application): string {
   if (data.fechasRetiro === "otra") return data.fechasRetiroOtra || "Otra fecha";
   return RETREATS.find((r) => r.id === data.fechasRetiro)?.label ?? data.fechasRetiro;
+}
+
+/**
+ * Los años que puede tener quien aplica.
+ *
+ * Existen por un caso real: el campo de fecha deja escribir encima y los dígitos
+ * se concatenan —al corregir 1085 por 1985 quedaba 31985— y nada lo detenía
+ * después, así que una fecha imposible entraba al expediente en silencio.
+ */
+export const EDAD_MINIMA = 18;
+export const EDAD_MAXIMA = 100;
+
+/** El rango de fechas que el navegador debe aceptar, en formato ISO. */
+export function limitesFechaNacimiento(hoy: Date = new Date()): { min: string; max: string } {
+  const en = (aniosAtras: number) => {
+    const d = new Date(hoy);
+    d.setFullYear(d.getFullYear() - aniosAtras);
+    return d.toISOString().slice(0, 10);
+  };
+  return { min: en(EDAD_MAXIMA), max: en(EDAD_MINIMA) };
 }
 
 export function ageFromIso(iso: string): number | null {

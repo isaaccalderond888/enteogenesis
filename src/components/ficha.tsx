@@ -11,6 +11,7 @@ import {
   RETREATS,
   STEPS,
   emptyApplication,
+  limitesFechaNacimiento,
   rememberFicha,
   type Application,
   type BodyItem,
@@ -165,14 +166,21 @@ export function FichaWizard() {
       <div className="border-b border-line bg-paper/70">
         <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6">
           {step === 0 ? (
-            <p className="mb-4 max-w-prose text-[15px] leading-relaxed text-ink-soft">
-              Esta es la ficha de admisión de Enteogénesis. {SITE.facilitators} la leen antes de
-              la entrevista. El retiro se cuenta en{" "}
-              <a href={SITE.home} className="text-clay underline-offset-4 hover:underline">
-                terrasana.pro
-              </a>
-              .
-            </p>
+            <div className="mb-4 max-w-prose space-y-3 text-[15px] leading-relaxed text-ink-soft">
+              <p>
+                Estamos muy emocionad@s de acompañarte en este viaje transformador. El proceso
+                de sanación comienza desde ahora — la preparación es la forma en que le dices a
+                tu psique que estás list@ para el cambio. 🙏
+              </p>
+              <p>
+                Esta es la ficha de admisión de Enteogénesis. {SITE.facilitators} la leen antes
+                de la entrevista. Más información sobre el retiro la encuentras en{" "}
+                <a href={SITE.home} className="text-clay underline-offset-4 hover:underline">
+                  terrasana.pro
+                </a>
+                .
+              </p>
+            </div>
           ) : null}
           <p className="eyebrow">Ficha de admisión</p>
           <div className="mt-3 flex items-end justify-between gap-4">
@@ -190,6 +198,11 @@ export function FichaWizard() {
 
       <form
         className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-10 pb-36 sm:px-6 sm:pb-28"
+        // La validación la hacemos nosotros, en español y con una frase que dice
+        // qué arreglar. Sin esto, el navegador bloquea el envío por su cuenta
+        // cuando un campo no le cuadra —una fecha fuera de min/max, por ejemplo—
+        // y quien llena la ficha se queda sin mensaje y sin avanzar.
+        noValidate
         onSubmit={(e) => {
           e.preventDefault();
           goNext();
@@ -296,6 +309,8 @@ function Identidad({
   data: Application;
   patch: (p: Partial<Application>) => void;
 }) {
+  // Una sola vez: si cambiara en cada render, el input perdería el foco.
+  const limitesFecha = useMemo(() => limitesFechaNacimiento(), []);
   return (
     <div className="space-y-5">
       <p className="text-sm leading-relaxed text-ink-soft">
@@ -309,9 +324,16 @@ function Identidad({
         />
       </Field>
       <Field label="Fecha de nacimiento" required>
+        {/*
+          Con min y max el navegador marca como inválido un año imposible. Sin
+          ellos, escribir encima de una fecha ya puesta concatena los dígitos
+          —corregir 1085 por 1985 dejaba 31985— y nadie lo notaba después.
+        */}
         <TextInput
           type="date"
           value={data.fechaNacimiento}
+          min={limitesFecha.min}
+          max={limitesFecha.max}
           onChange={(e) => patch({ fechaNacimiento: e.target.value })}
         />
       </Field>

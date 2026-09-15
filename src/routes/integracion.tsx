@@ -75,6 +75,91 @@ const BLOQUES: Bloque[] = [
       "Llamar “sanación” a un deterioro persistente del funcionamiento.",
     ],
   },
+  {
+    n: "04",
+    title: "Canales para lo que todavía no tiene palabras",
+    body: [
+      "No todo lo que se movió se deja decir. Estas vías no son pasatiempos: son formas de que el material siga procesándose sin exigirle que sea coherente todavía.",
+    ],
+    lista: [
+      "Dibujo y arte: deja que emerjan imágenes, emociones o frases sin planearlas.",
+      "Escritura y diario: lo que escribas hoy te servirá dentro de un mes, cuando el significado haya cambiado.",
+      "Música: escucha lo que te conecte con la emoción, no lo que te distraiga de ella.",
+      "Naturaleza: abraza un árbol, planta algo, camina descalzo sobre tierra o pasto.",
+      "Meditación y respiración consciente, para sostener la calma sin forzarla.",
+      "Movimiento corporal: yoga, tai chi, estiramientos suaves o caminar. Ancla la experiencia en el cuerpo.",
+      "Apoyo comunitario: comparte con personas de confianza o con el grupo. No estás sol@.",
+    ],
+  },
+  {
+    n: "05",
+    title: "Cuidados de esta semana",
+    body: [
+      "Durante la sesión hubo una liberación importante de serotonina y otros neurotransmisores. Los días siguientes tu sistema nervioso está restableciendo sus niveles, y eso explica buena parte de la sensibilidad y del bajón.",
+    ],
+    lista: [
+      "Sueño de calidad: es cuando el cerebro consolida y procesa lo vivido.",
+      "Hidratación adecuada, sin excesos. Escucha a tu cuerpo.",
+      "Alimentación nutritiva: proteínas de calidad y vegetales.",
+      "Movimiento suave. Evita por ahora los entrenamientos de alta intensidad.",
+      "Contacto con la naturaleza: sal al sol, toca tierra, respira aire fresco.",
+      "Reduce alcohol, cafeína y otros estimulantes esta semana.",
+    ],
+  },
+];
+
+/**
+ * Suplementos de apoyo, del protocolo que usa Claudia tras la sesión.
+ *
+ * La advertencia sobre el triptófano no es formalidad: con un ISRS o un IRSN
+ * activo, un precursor de serotonina puede desencadenar un síndrome
+ * serotoninérgico. Quien suspendió su antidepresivo para el retiro va a
+ * retomarlo justo en estos días, que son los mismos en que tomaría esto.
+ */
+type Suplemento = { nombre: string; dosis: string; porQue: string };
+
+const SUPLEMENTOS_ESENCIALES: Suplemento[] = [
+  {
+    nombre: "L-Triptófano",
+    dosis: "1.5–2 g antes de dormir, 5 a 7 días",
+    porQue:
+      "Precursor directo de serotonina. Tómalo con algo de carbohidrato —fruta, miel— para que se absorba mejor. Más amigable para el organismo que el 5-HTP.",
+  },
+  {
+    nombre: "Magnesio glicinato o treonato",
+    dosis: "300–400 mg al día, en una o dos tomas",
+    porQue:
+      "Apoya la síntesis de serotonina, calma el sistema nervioso y baja la tensión muscular.",
+  },
+  {
+    nombre: "Complejo B, sobre todo B6",
+    dosis: "50 mg de B6, según indicaciones del producto",
+    porQue: "Son los cofactores que el cuerpo necesita para producir neurotransmisores.",
+  },
+];
+
+const SUPLEMENTOS_COMPLEMENTARIOS: Suplemento[] = [
+  {
+    nombre: "Omega-3",
+    dosis: "2–3 g al día",
+    porQue: "Antiinflamatorio y neuroprotector.",
+  },
+  {
+    nombre: "Vitamina C y D",
+    dosis: "1–2 g al día de C",
+    porQue: "Antioxidante; reduce el estrés oxidativo posterior a la sesión.",
+  },
+  {
+    nombre: "Probióticos",
+    dosis: "Dosis estándar",
+    porQue:
+      "Buena parte de la serotonina del cuerpo se produce en el intestino: cuidar la microbiota apoya el equilibrio emocional.",
+  },
+  {
+    nombre: "Melena de león (Lion's Mane)",
+    dosis: "500–1,000 mg al día",
+    porQue: "Neuroprotección y neurogénesis; apoya la plasticidad en este período.",
+  },
 ];
 
 /** Etiqueta partida en lineas cortas para que quepa dentro de cada gajo. */
@@ -365,6 +450,46 @@ function IntegracionPage() {
 
           <section>
             <p className="text-xs tracking-[0.22em] text-clay">06</p>
+            <h2 className="mt-2 text-2xl font-normal">Suplementos de apoyo</h2>
+            <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
+              Opcionales, para acompañar la recuperación de estos días. No son un tratamiento ni
+              sustituyen consejo médico.
+            </p>
+
+            <div className="mt-6 rounded-2xl border border-hold/40 bg-hold/5 p-5">
+              <p className="text-xs font-bold tracking-[0.18em] text-hold">
+                ANTES DE TOMAR TRIPTÓFANO, LEE ESTO
+              </p>
+              <p className="mt-2 text-[15px] leading-relaxed text-ink">
+                Si retomaste —o vas a retomar— un antidepresivo, un ISRS o un IRSN, no tomes
+                L-triptófano ni 5-HTP sin consultarlo antes con quien te lo prescribe. Juntos
+                pueden desencadenar un síndrome serotoninérgico. Si suspendiste tu medicación
+                para el retiro, estos días son justo cuando la retomas: coinciden.
+              </p>
+            </div>
+
+            {[
+              { titulo: "ESENCIALES", lista: SUPLEMENTOS_ESENCIALES },
+              { titulo: "COMPLEMENTARIOS", lista: SUPLEMENTOS_COMPLEMENTARIOS },
+            ].map((grupo) => (
+              <div key={grupo.titulo} className="mt-6">
+                <p className="text-xs font-bold tracking-[0.18em] text-clay">{grupo.titulo}</p>
+                <div className="mt-3 space-y-4">
+                  {grupo.lista.map((sup) => (
+                    <div key={sup.nombre} className="border-l-2 border-sand pl-4">
+                      <p className="text-[15px] leading-relaxed text-ink">
+                        <span className="font-medium">{sup.nombre}</span> · {sup.dosis}
+                      </p>
+                      <p className="mt-1 text-[15px] leading-relaxed text-ink-soft">{sup.porQue}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </section>
+
+          <section>
+            <p className="text-xs tracking-[0.22em] text-clay">07</p>
             <h2 className="mt-2 text-2xl font-normal">Señales de cuidado</h2>
             <p className="mt-6 text-xs font-bold tracking-[0.18em] text-teal">
               INTEGRACIÓN SALUDABLE
@@ -402,7 +527,7 @@ function IntegracionPage() {
           </section>
 
           <section>
-            <p className="text-xs tracking-[0.22em] text-clay">07</p>
+            <p className="text-xs tracking-[0.22em] text-clay">08</p>
             <h2 className="mt-2 text-2xl font-normal">Recursos</h2>
             <div className="mt-6 space-y-4">
               {RECURSOS.map((r) => (

@@ -169,15 +169,17 @@ function GraciasPage() {
                 : "Pégala en el correo o WhatsApp con el que te invitaron al retiro."}
           </li>
           <li>
-            <span className="font-medium text-ink">3. Espera la entrevista.</span> No es un
-            compromiso de lugar hasta que conversen.
+            <span className="font-medium text-ink">3. La entrevista.</span> El siguiente paso es
+            la entrevista, y su resultado determina tu cupo en el retiro.
           </li>
           <li>
-            <span className="font-medium text-ink">4. Lee la preparación.</span>{" "}
+            <span className="font-medium text-ink">4. Lee la preparación.</span> En ella
+            encontrarás qué es este trabajo, quién no debería participar, las semanas previas, y
+            durante y después de la experiencia.{" "}
             <Link to="/preparacion" className="underline underline-offset-4 hover:text-ink">
-              Qué es este trabajo, quién no debería participar y cómo llegar
+              Léela antes de la entrevista
             </Link>
-            . Vale la pena leerla antes de la entrevista.
+            .
           </li>
         </ol>
 
