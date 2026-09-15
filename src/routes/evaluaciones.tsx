@@ -6,6 +6,7 @@ import {
   TEST_CONFIGS,
   type TestId,
 } from "@/lib/evaluaciones/tests";
+import { SITE } from "@/lib/site";
 
 export const Route = createFileRoute("/evaluaciones")({
   head: () => ({
@@ -33,7 +34,7 @@ function EvaluacionesPage() {
         <h1 className="mt-3 text-3xl font-normal sm:text-4xl">Instrumentos de tamizaje</h1>
         <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
           Escalas de uso clínico. Ninguna diagnostica y ninguna se responde en soledad: se
-          aplican durante la entrevista, con Isaac Calderón o Claudia Saviñón presentes — sea
+          aplican durante la entrevista, con {SITE.facilitators} presentes — sea
           que ellos las lean en voz alta o que tú las contestes mientras conversan.
         </p>
         <div className="mt-5 rounded-2xl border border-clay/30 bg-sand/40 p-5">
@@ -81,7 +82,7 @@ function EvaluacionesPage() {
         <p className="mt-14 text-xs leading-relaxed text-muted">
           Instrumentos de tamizaje, no de diagnóstico. Un resultado elevado no es un
           padecimiento ni un rechazo; un resultado bajo no descarta nada. La lectura la hacen
-          Isaac Calderón y Claudia Saviñón en conversación.
+          {SITE.facilitators}, en conversación.
         </p>
       </article>
     </PageShell>

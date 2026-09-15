@@ -450,7 +450,7 @@ function ExpedientePage() {
         </section>
 
         <label className="no-print mt-8 block text-sm">
-          Notas de Isaac y Claudia
+          Notas del equipo
           <textarea
             className="mt-2 min-h-28 w-full rounded-2xl border border-line bg-paper px-3.5 py-3 text-[15px] outline-none focus:border-clay"
             value={notes}

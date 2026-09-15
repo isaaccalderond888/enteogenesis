@@ -42,7 +42,7 @@ export function SiteFooter() {
       <div className="mx-auto max-w-2xl px-4 py-6 text-center sm:px-6">
         <p className="text-sm text-ink-soft">{SITE.facilitators}</p>
         <p className="mt-1 text-xs leading-relaxed text-muted">
-          Tepetlixpa · Al cerrar, la ficha llega al expediente de Isaac y Claudia.
+          Tepetlixpa · Al cerrar, la ficha llega al expediente de {SITE.facilitators}.
         </p>
         <a
           href={SITE.home}

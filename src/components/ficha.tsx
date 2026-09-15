@@ -272,7 +272,7 @@ function Marco({
       </p>
       <p>
         Tus respuestas se guardan en este dispositivo mientras avanzas. Al cerrar, llegan al
-        expediente que leen Isaac y Claudia. Conserva una copia: es tu respaldo.
+        expediente que lee {SITE.facilitators}. Conserva una copia: es tu respaldo.
       </p>
       <p>
         Este evento es una experiencia de crecimiento personal y no debería considerarse un

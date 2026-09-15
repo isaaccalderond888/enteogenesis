@@ -74,7 +74,7 @@ function LoginPage() {
     <PageShell internal footer={false}>
       <main className="mx-auto max-w-md px-4 py-16 sm:px-6">
         <p className="eyebrow">Acceso interno</p>
-        <h1 className="mt-3 text-3xl font-normal">Isaac y Claudia</h1>
+        <h1 className="mt-3 text-3xl font-normal">{SITE.facilitatorsTitle}</h1>
         <p className="mt-3 text-sm leading-relaxed text-ink-soft">
           Expedientes de admisión. No es la ficha pública. {SITE.facilitators}.
         </p>
