@@ -107,7 +107,7 @@ Dos cosas antes de portarla:
 
 ## 5. Revisión humana de los textos
 
-Claudia Saviñón e Isaura Maro revisan todo el texto del sitio y deciden **qué
+Claudia Saviñón e Isaura Madinabeita revisan todo el texto del sitio y deciden **qué
 escalas se quedan**. Las 17 permanecen disponibles mientras tanto, sin enlaces,
 para poder mandarlas a revisión una por una.
 
@@ -128,14 +128,22 @@ orden no se decida página por página. Están en `/preparacion` y `/integracion
 que por eso pasaron las dos a `noindex`: son móviles personales y esas páginas se
 comparten por enlace con quien ya aplicó, no se descubren en buscadores.
 
-La ficha pública sigue llevando sólo la línea nacional, a propósito: quien está
-llenando el formulario todavía no es participante.
+La ficha pública no los lleva, a propósito: quien está llenando el formulario
+todavía no es participante, y esos son móviles personales.
 
-**Sigue sin verificar: el número de la línea.** `Línea de la Vida · 800 911 2000`
-viene del código original. Es el número público del servicio nacional, pero **no
-se pudo marcar desde aquí para confirmar que contesta**, y marcarlo es cosa de un
-minuto para cualquiera de ustedes. Alternativas si no responde: SAPTEL (Cruz Roja
-Mexicana) y la línea de apoyo psicológico de Locatel para CDMX.
+**Resuelto: fuera la línea de crisis.** Decisión de Isaac. El
+`Línea de la Vida · 800 911 2000` venía del código original y nunca se pudo
+verificar; un número que no sabemos si contesta es peor que ninguno, porque quien
+marca en un mal momento y no obtiene respuesta aprende que pedir ayuda no sirve.
+Los tres contactos son ahora los únicos números del sitio.
+
+Donde hacía falta nombrar la urgencia —la ficha, las escalas, el bloque de
+avisar— se dice sin número: servicios de emergencia locales o urgencias del
+hospital más cercano. Una prueba cuida que el número viejo no vuelva a colarse.
+
+**Queda abierto, si alguna vez quieren una línea:** habría que marcarla antes de
+publicarla. Candidatas: SAPTEL (Cruz Roja Mexicana) y la línea de apoyo
+psicológico de Locatel para CDMX.
 
 ## 6b. Lo que Claudia pidió y quedó fuera
 

@@ -17,7 +17,6 @@ test("el teléfono para marcar tiene los dígitos que se marcan hoy en México",
   for (const c of SITE.contacts) {
     assert.match(c.tel, /^\+52\d{10}$/, `${c.name}: ${c.tel} no son diez dígitos tras el +52`);
   }
-  assert.match(SITE.crisis.tel, /^\+52\d{10}$/);
 });
 
 test("lo que se muestra y lo que se marca son el mismo número", async () => {
@@ -32,20 +31,34 @@ test("lo que se muestra y lo que se marca son el mismo número", async () => {
   }
 });
 
-test("los facilitadores van antes que la línea de crisis", async () => {
+test("la urgencia se nombra, pero después de los facilitadores", async () => {
   // El orden es la parte clínica: un bajón después de una sesión no es una
-  // crisis de riesgo vital. Mandar a alguien a una línea de emergencia por eso
-  // patologiza algo esperable y le enseña a no avisar; y quien sí está en riesgo
-  // necesita ver la urgencia aparte, no mezclada en la misma frase.
+  // crisis de riesgo vital. Ponerlos al revés patologiza algo esperable y de paso
+  // enseña a no avisar; y quien sí está en riesgo necesita ver la urgencia
+  // aparte, no mezclada en la misma frase.
   const fuente = readFileSync(
     new URL("../components/a-quien-avisar.tsx", import.meta.url),
     "utf8",
   );
   const contactos = fuente.indexOf("SITE.contacts.map");
-  const crisis = fuente.indexOf("SITE.crisis.tel");
-  assert.ok(contactos > 0 && crisis > 0);
-  assert.ok(contactos < crisis, "la línea de crisis no debería ir antes que los facilitadores");
-  assert.match(fuente, /peligro inmediato/i, "la urgencia tiene que decirse como tal");
+  const urgencia = fuente.indexOf("peligro inmediato");
+  assert.ok(contactos > 0 && urgencia > 0, "tienen que estar los dos bloques");
+  assert.ok(contactos < urgencia, "la urgencia no debería ir antes que los facilitadores");
+});
+
+test("no queda ningún teléfono de crisis sin verificar en el sitio", async () => {
+  // El que venía heredado nunca se pudo comprobar, y un número que no sabemos si
+  // contesta es peor que ninguno: quien marca en un mal momento y no obtiene
+  // respuesta aprende que pedir ayuda no sirve.
+  for (const archivo of [
+    "../lib/site.ts",
+    "../components/a-quien-avisar.tsx",
+    "../components/ficha.tsx",
+    "../routes/evaluaciones_.$id.tsx",
+  ]) {
+    const fuente = readFileSync(new URL(archivo, import.meta.url), "utf8");
+    assert.doesNotMatch(fuente, /800\s?911\s?2000|Línea de la Vida/, `${archivo} todavía la trae`);
+  }
 });
 
 test("las páginas con los teléfonos no se ofrecen a los buscadores", async () => {

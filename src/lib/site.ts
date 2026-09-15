@@ -27,13 +27,12 @@ export const SITE = {
     "clausavinon@gmail.com",
   ] as string[],
   /**
-   * A quién avisar, en orden.
+   * A quién avisar.
    *
-   * Van primero ellos y la línea pública queda debajo, como red de seguridad.
-   * La razón es clínica, no de cortesía: quien tiene un bajón después de una
-   * sesión no está en una crisis de riesgo vital, y mandarlo a una línea de
-   * emergencia patologiza algo esperable y de paso le enseña a no avisar. Quien
-   * sí está en riesgo necesita ver la urgencia aparte, no en la misma frase.
+   * Son los únicos números del sitio. No hay una línea de crisis pública: la que
+   * venía heredada del código original nunca se pudo verificar, y un número que
+   * no sabemos si contesta es peor que ninguno — quien marca en un mal momento y
+   * no obtiene respuesta aprende que pedir ayuda no sirve. Decisión de Isaac.
    *
    * `tel` va en formato internacional con los diez dígitos del número mexicano,
    * que es como se marca desde 2019. `display` es como se lee en pantalla.
@@ -41,13 +40,8 @@ export const SITE = {
   contacts: [
     { name: "Isaac Calderón", tel: "+524424752806", display: "+52 442 475 2806" },
     { name: "Claudia Saviñón", tel: "+525554325764", display: "+52 55 5432 5764" },
-    { name: "Isaura Maro", tel: "+528711061805", display: "+52 871 106 1805" },
+    { name: "Isaura Madinabeita", tel: "+528711061805", display: "+52 871 106 1805" },
   ],
-  crisis: {
-    name: "Línea de la Vida",
-    phone: "800 911 2000",
-    tel: "+528009112000",
-  },
 } as const;
 
 export function mailtoFicha(subject: string, body: string): string | null {

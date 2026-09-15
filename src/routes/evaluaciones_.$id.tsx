@@ -94,7 +94,7 @@ function EvaluacionPage() {
             <p className="text-[15px] leading-relaxed text-ink">{config.disclaimer}</p>
             <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">
               Si algo de lo que aparece aquí te preocupa, háblalo con {SITE.facilitators}. Ante
-              una crisis o riesgo inmediato: {SITE.crisis.name}, {SITE.crisis.phone}.
+              una crisis o riesgo inmediato, busca atención de urgencia.
             </p>
           </div>
 
