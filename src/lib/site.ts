@@ -1,6 +1,12 @@
 /** Copy and contact — keep this the single place for names. */
 export const SITE = {
-  facilitators: "Isaac Calderón y Claudia Saviñón",
+  /**
+   * Quién acompaña, en genérico.
+   *
+   * Nombrar a Isaac y a Claudia creaba la expectativa de que ellos dos hacen
+   * todas las entrevistas, y también las hace Isaura. Petición de Claudia.
+   */
+  facilitators: "los facilitadores",
   home: "https://terrasana.pro/",
   /** Set when Isaac confirms the inbox. Empty = do not invent an address. */
   inbox: "",

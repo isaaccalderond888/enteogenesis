@@ -3,10 +3,12 @@ import test from "node:test";
 import {
   emptyApplication,
   generoTexto,
+  limitesFechaNacimiento,
   lectura,
   safetyFlags,
   sexoTexto,
   validateApplication,
+  validateStep,
   type Application,
 } from "./application.ts";
 
@@ -205,4 +207,31 @@ test("faltar sexo al nacer o identidad detiene la ficha", () => {
 test('elegir "Otra" sin escribirla detiene la ficha', () => {
   const msg = validateApplication(fichaValida({ identidadGenero: "Otra", identidadGeneroOtra: "  " }));
   assert.match(String(msg), /nombras/i);
+});
+
+test("una fecha de nacimiento imposible no pasa de la ficha", () => {
+  // Caso real de Claudia: escribió mal la fecha, quiso corregirla escribiendo
+  // encima, y los dígitos se concatenaron —1085 corregido a 1985 quedó 31985—.
+  // Antes sólo se comprobaba que el campo no estuviera vacío.
+  for (const fecha of ["31985-12-03", "1085-03-14", "0019-01-01", "3000-01-01"]) {
+    const error = validateStep(1, fichaValida({ fechaNacimiento: fecha }));
+    assert.match(error ?? "", /fecha de nacimiento/i, `debería rechazar ${fecha}`);
+  }
+});
+
+test("una fecha de nacimiento normal sí pasa", () => {
+  assert.equal(validateStep(1, fichaValida({ fechaNacimiento: "1985-03-14" })), null);
+});
+
+test("el trabajo es para mayores de edad, y se dice con claridad", () => {
+  const hoy = new Date();
+  const hace10 = new Date(hoy.getFullYear() - 10, hoy.getMonth(), hoy.getDate());
+  const error = validateStep(1, fichaValida({ fechaNacimiento: hace10.toISOString().slice(0, 10) }));
+  assert.match(error ?? "", /mayores de 18/i);
+});
+
+test("los límites del campo dejan el rango que el formulario acepta", () => {
+  const { min, max } = limitesFechaNacimiento(new Date("2026-09-15T00:00:00Z"));
+  assert.equal(max, "2008-09-15");
+  assert.equal(min, "1926-09-15");
 });
