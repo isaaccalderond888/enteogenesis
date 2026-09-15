@@ -134,7 +134,7 @@ function GraciasPage() {
         </h1>
         <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
           {arrived
-            ? `Isaac y Claudia ya tienen tu expediente. Conserva una copia en este dispositivo: si cambias de equipo, esta pantalla no la recupera.`
+            ? `${SITE.facilitatorsTitle} ya tiene tu expediente. Conserva una copia en este dispositivo: si cambias de equipo, esta pantalla no la recupera.`
             : `Tu ficha está en este dispositivo. Aún no confirmamos que llegara al expediente.`}
         </p>
         {arrived ? null : (

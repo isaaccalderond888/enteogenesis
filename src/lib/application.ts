@@ -217,7 +217,7 @@ export const BODY_FIELDS: {
   {
     key: "embarazo",
     question: "¿Estás embarazada o planeando embarazarte?",
-    detail: "Comparte lo que consideres relevante para Isaac y Claudia.",
+    detail: "Comparte lo que consideres relevante para el equipo.",
   },
   {
     key: "hormonal",

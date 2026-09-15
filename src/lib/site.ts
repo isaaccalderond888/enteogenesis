@@ -5,8 +5,15 @@ export const SITE = {
    *
    * Nombrar a Isaac y a Claudia creaba la expectativa de que ellos dos hacen
    * todas las entrevistas, y también las hace Isaura. Petición de Claudia.
+   *
+   * Las dos formas existen para no escribir la frase a mano al empezar una
+   * oración: así fue como quedaron once menciones sueltas después del primer
+   * cambio. Una prueba recorre la interfaz y falla si vuelve a aparecer un
+   * nombre propio del equipo.
    */
   facilitators: "los facilitadores",
+  /** La misma idea, para cuando abre la frase. */
+  facilitatorsTitle: "El equipo de facilitadores",
   home: "https://terrasana.pro/",
   /** Set when Isaac confirms the inbox. Empty = do not invent an address. */
   inbox: "",

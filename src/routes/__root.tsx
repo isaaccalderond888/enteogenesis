@@ -2,6 +2,7 @@ import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-r
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import appCss from "../styles.css?url";
+import { SITE } from "@/lib/site";
 
 const APP_NAME = "Enteogénesis · Terrasana";
 
@@ -14,7 +15,7 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Ficha de admisión para Enteogénesis. La leen Isaac Calderón y Claudia Saviñón. Terrasana, Tepetlixpa.",
+          `Ficha de admisión para Enteogénesis. La lee ${SITE.facilitators}. Terrasana, Tepetlixpa.`,
       },
       { name: "theme-color", content: "#F2EEE5" },
     ],
