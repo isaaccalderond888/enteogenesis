@@ -561,7 +561,7 @@ function Mente({
       </Field>
       <p className="rounded-2xl border border-line bg-paper px-4 py-3 text-sm leading-relaxed text-muted">
         Si estás en una crisis aguda, este cuestionario no es el lugar. Habla con alguien de
-        confianza o llama a {SITE.crisis.name}: {SITE.crisis.phone}.
+        confianza o busca atención de urgencia.
       </p>
       <Field label="Describe lo que sepas de antecedentes en tu familia de enfermedad mental, o rarezas o peculiaridades que afectaran el bienestar de familiares y consideres importante mencionar.">
         <TextArea

@@ -33,11 +33,8 @@ export function AQuienAvisar({ nota }: { nota?: string }) {
       <p className="mt-4 border-t border-line pt-4 text-[15px] leading-relaxed text-ink-soft">
         Aparte de eso, si hay <span className="text-ink">peligro inmediato</span> —riesgo de
         hacerte daño, una emergencia médica o de salud mental— busca atención de urgencia además
-        de avisarles. En México,{" "}
-        <a href={`tel:${SITE.crisis.tel}`} className="text-ink hover:text-clay">
-          {SITE.crisis.name}: <span className="tabular-nums">{SITE.crisis.phone}</span>
-        </a>
-        .
+        de avisarles: los servicios de emergencia de tu localidad, o urgencias del hospital más
+        cercano.
       </p>
     </div>
   );
