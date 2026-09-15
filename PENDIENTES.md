@@ -111,7 +111,7 @@ Claudia Saviñón e Isaura Maro revisan todo el texto del sitio y deciden **qué
 escalas se quedan**. Las 17 permanecen disponibles mientras tanto, sin enlaces,
 para poder mandarlas a revisión una por una.
 
-## 6. Línea de emergencia — a medias
+## 6. Línea de emergencia — casi cerrado
 
 Claudia preguntó dos cosas sobre esto y una ya está resuelta.
 
@@ -122,14 +122,20 @@ patologizaba un bajón que es esperable, y dejaba a alguien en riesgo real sin
 saber a quién llamar. En `/preparacion` ahora el bajón va a los facilitadores, y
 la urgencia va aparte.
 
-**Falta: los tres contactos.** El bloque debería nombrar a Isaac, Claudia e
-Isaura con su teléfono, y dejar la línea pública debajo como red de seguridad.
-No están puestos porque no tengo los números, y no se inventan.
+**Resuelto: los tres contactos.** Isaac, Claudia e Isaura viven en
+`SITE.contacts` y se pintan con `AQuienAvisar`, un solo componente para que el
+orden no se decida página por página. Están en `/preparacion` y `/integracion`,
+que por eso pasaron las dos a `noindex`: son móviles personales y esas páginas se
+comparten por enlace con quien ya aplicó, no se descubren en buscadores.
 
-`src/lib/site.ts` trae `Línea de la Vida · 800 911 2000`, heredada del código
-original. Es el número público del servicio nacional, pero **no se pudo marcar
-desde aquí para confirmar que contesta**. Alternativas a evaluar: SAPTEL (Cruz
-Roja Mexicana) y la línea de apoyo psicológico de Locatel para CDMX.
+La ficha pública sigue llevando sólo la línea nacional, a propósito: quien está
+llenando el formulario todavía no es participante.
+
+**Sigue sin verificar: el número de la línea.** `Línea de la Vida · 800 911 2000`
+viene del código original. Es el número público del servicio nacional, pero **no
+se pudo marcar desde aquí para confirmar que contesta**, y marcarlo es cosa de un
+minuto para cualquiera de ustedes. Alternativas si no responde: SAPTEL (Cruz Roja
+Mexicana) y la línea de apoyo psicológico de Locatel para CDMX.
 
 ## 6b. Lo que Claudia pidió y quedó fuera
 

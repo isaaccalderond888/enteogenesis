@@ -1,7 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { AQuienAvisar } from "@/components/a-quien-avisar";
 import { PageShell } from "@/components/site-chrome";
 
-export const Route = createFileRoute("/preparacion")({ component: PreparacionPage });
+export const Route = createFileRoute("/preparacion")({
+  head: () => ({
+    meta: [
+      { title: "Preparación · Enteogénesis" },
+      // Se comparte por enlace con quien ya aplicó, como /integracion. Desde que
+      // la página trae los teléfonos de los tres facilitadores, no tiene por qué
+      // aparecer en buscadores ni quedar al alcance de los rastreadores.
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
+  component: PreparacionPage,
+});
 
 const SECTIONS = [
   {
@@ -66,8 +78,8 @@ const SECTIONS = [
       "Los facilitadores acompañan todo el proceso. Si algo se vuelve insostenible, dilo. La integración —individual y grupal— es parte del retiro, no un extra.",
       "Es normal tener mayor sensibilidad emocional durante los tres a cinco días siguientes, y también un bajón. No es una señal de que algo salió mal. Descansa, escribe, muévete con suavidad y evita decisiones grandes.",
       "Para eso —el bajón, la sensibilidad, las dudas que aparecen después— escríbeles a los facilitadores. Es parte del acompañamiento, no una molestia, y no hace falta que sea grave para avisar.",
-      "Aparte de eso, y sólo si hay peligro inmediato —pensamientos de hacerte daño, desconexión que no cede, insomnio severo o una activación que no puedes sostener—, busca atención de urgencia además de avisarles. Los servicios de emergencia locales están para eso.",
     ],
+    avisos: true,
   },
 ];
 
@@ -122,6 +134,11 @@ function PreparacionPage() {
                   {p}
                 </p>
               ))}
+              {"avisos" in s && s.avisos ? (
+                <div className="mt-6">
+                  <AQuienAvisar />
+                </div>
+              ) : null}
             </section>
           ))}
         </div>

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Printer } from "lucide-react";
+import { AQuienAvisar } from "@/components/a-quien-avisar";
 import { PageShell } from "@/components/site-chrome";
 import { SITE } from "@/lib/site";
 
@@ -513,16 +514,8 @@ function IntegracionPage() {
                 </li>
               ))}
             </ul>
-            <div className="mt-6 rounded-2xl border border-clay/30 bg-sand/50 p-5">
-              <p className="text-[15px] leading-relaxed text-ink">
-                Si existe peligro inmediato, riesgo suicida o una emergencia médica o de salud
-                mental, contacta los servicios locales de emergencia. En México,{" "}
-                <span className="font-medium">
-                  {SITE.crisis.name}: {SITE.crisis.phone}
-                </span>
-                . Los servicios de integración y las líneas de apoyo no sustituyen atención de
-                urgencia.
-              </p>
+            <div className="mt-6">
+              <AQuienAvisar nota="Si algo de lo anterior aparece, no esperes a estar seguro de que es grave. Escríbeles o llámales." />
             </div>
           </section>
 
