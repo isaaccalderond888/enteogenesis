@@ -19,6 +19,7 @@ import { Route as GraciasRouteImport } from './routes/gracias'
 import { Route as IntegracionRouteImport } from './routes/integracion'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PreparacionRouteImport } from './routes/preparacion'
+import { Route as CompletarTokenRouteImport } from './routes/completar.$token'
 import { Route as EvaluacionesIdRouteImport } from './routes/evaluaciones_.$id'
 import { Route as ExpedientesIdRouteImport } from './routes/expedientes_.$id'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -73,6 +74,11 @@ const PreparacionRoute = PreparacionRouteImport.update({
   path: '/preparacion',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CompletarTokenRoute = CompletarTokenRouteImport.update({
+  id: '/completar/$token',
+  path: '/completar/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EvaluacionesIdRoute = EvaluacionesIdRouteImport.update({
   id: '/evaluaciones_/$id',
   path: '/evaluaciones/$id',
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/integracion': typeof IntegracionRoute
   '/login': typeof LoginRoute
   '/preparacion': typeof PreparacionRoute
+  '/completar/$token': typeof CompletarTokenRoute
   '/evaluaciones/$id': typeof EvaluacionesIdRoute
   '/expedientes/$id': typeof ExpedientesIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/integracion': typeof IntegracionRoute
   '/login': typeof LoginRoute
   '/preparacion': typeof PreparacionRoute
+  '/completar/$token': typeof CompletarTokenRoute
   '/evaluaciones/$id': typeof EvaluacionesIdRoute
   '/expedientes/$id': typeof ExpedientesIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -131,6 +139,7 @@ export interface FileRoutesById {
   '/integracion': typeof IntegracionRoute
   '/login': typeof LoginRoute
   '/preparacion': typeof PreparacionRoute
+  '/completar/$token': typeof CompletarTokenRoute
   '/evaluaciones_/$id': typeof EvaluacionesIdRoute
   '/expedientes_/$id': typeof ExpedientesIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -148,6 +157,7 @@ export interface FileRouteTypes {
     | '/integracion'
     | '/login'
     | '/preparacion'
+    | '/completar/$token'
     | '/evaluaciones/$id'
     | '/expedientes/$id'
     | '/api/auth/$'
@@ -163,6 +173,7 @@ export interface FileRouteTypes {
     | '/integracion'
     | '/login'
     | '/preparacion'
+    | '/completar/$token'
     | '/evaluaciones/$id'
     | '/expedientes/$id'
     | '/api/auth/$'
@@ -178,6 +189,7 @@ export interface FileRouteTypes {
     | '/integracion'
     | '/login'
     | '/preparacion'
+    | '/completar/$token'
     | '/evaluaciones_/$id'
     | '/expedientes_/$id'
     | '/api/auth/$'
@@ -194,6 +206,7 @@ export interface RootRouteChildren {
   IntegracionRoute: typeof IntegracionRoute
   LoginRoute: typeof LoginRoute
   PreparacionRoute: typeof PreparacionRoute
+  CompletarTokenRoute: typeof CompletarTokenRoute
   EvaluacionesIdRoute: typeof EvaluacionesIdRoute
   ExpedientesIdRoute: typeof ExpedientesIdRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -271,6 +284,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PreparacionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/completar/$token': {
+      id: '/completar/$token'
+      path: '/completar/$token'
+      fullPath: '/completar/$token'
+      preLoaderRoute: typeof CompletarTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/evaluaciones_/$id': {
       id: '/evaluaciones_/$id'
       path: '/evaluaciones/$id'
@@ -306,6 +326,7 @@ const rootRouteChildren: RootRouteChildren = {
   IntegracionRoute: IntegracionRoute,
   LoginRoute: LoginRoute,
   PreparacionRoute: PreparacionRoute,
+  CompletarTokenRoute: CompletarTokenRoute,
   EvaluacionesIdRoute: EvaluacionesIdRoute,
   ExpedientesIdRoute: ExpedientesIdRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

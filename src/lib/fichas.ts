@@ -38,6 +38,9 @@ export type FichaListItem = {
   reviewCount: number;
   status: FichaStatus;
   createdAt: string;
+  /** Cuándo la completó la propia persona por enlace, si lo hizo. */
+  editadaAt: string | null;
+  editadaVeces: number;
   flags: FlagChip[];
   edad: number | null;
   lectura: string;
@@ -61,6 +64,8 @@ type FichaRow = {
   status: string;
   notes: string;
   created_at: string;
+  editada_at: string | null;
+  editada_veces: number;
 };
 
 function isStatus(v: string): v is FichaStatus {
@@ -98,6 +103,8 @@ function toListItem(row: FichaRow): FichaListItem {
     reviewCount: flags.filter((f) => f.level === "review").length,
     status: isStatus(row.status) ? row.status : "nueva",
     createdAt: String(row.created_at),
+    editadaAt: row.editada_at ? String(row.editada_at) : null,
+    editadaVeces: row.editada_veces ?? 0,
     flags: flags
       .map((f) => ({ level: f.level, label: f.label, detail: f.detail }))
       .sort((a, b) => Number(b.level === "hold") - Number(a.level === "hold")),
@@ -110,7 +117,7 @@ function toListItem(row: FichaRow): FichaListItem {
  * Staff gate: invited email, allow-list, or first signer if the table is empty.
  * Public applicants never hit this — they only INSERT via submitFicha.
  */
-async function requireStaff(userId: string) {
+export async function requireStaff(userId: string) {
   const sql = await getSql();
   const { getSessionUser, UnauthorizedError } = await import("@/lib/auth/verify.server");
   const session = await getSessionUser();
@@ -174,7 +181,7 @@ export const listFichas = createServerFn({ method: "GET" })
     await requireStaff(context.userId);
     const sql = await getSql();
     const rows = await sql<FichaRow>`
-      select id, nombre, email, telefono, retiro, payload, flags, hold_count, lectura, status, notes, created_at
+      select id, nombre, email, telefono, retiro, payload, flags, hold_count, lectura, status, notes, created_at, editada_at, editada_veces
       from fichas
       order by created_at desc
     `;
@@ -188,7 +195,7 @@ export const getFicha = createServerFn({ method: "GET" })
     await requireStaff(context.userId);
     const sql = await getSql();
     const rows = await sql<FichaRow>`
-      select id, nombre, email, telefono, retiro, payload, flags, hold_count, lectura, status, notes, created_at
+      select id, nombre, email, telefono, retiro, payload, flags, hold_count, lectura, status, notes, created_at, editada_at, editada_veces
       from fichas where id = ${id} limit 1
     `;
     const row = rows[0];
