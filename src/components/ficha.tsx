@@ -36,21 +36,43 @@ async function persistFicha(submitted: Application): Promise<string> {
   throw last instanceof Error ? last : new Error("No se pudo guardar.");
 }
 
-export function FichaWizard() {
+/**
+ * Cuando la ficha se abre para completarla, en vez de para llenarla de cero.
+ *
+ * El formulario es el mismo —ocho pasos, las mismas validaciones— porque
+ * mantener dos copias sería garantía de que se separen. Lo que cambia es de
+ * dónde salen los datos, dónde se guardan y qué dice el botón del final.
+ */
+export type ModoEdicion = {
+  inicial: Application;
+  /** Guarda y resuelve; si lanza, el mensaje se muestra tal cual. */
+  guardar: (data: Application) => Promise<void>;
+  /** Se llama al guardar bien. La confirmación la pinta quien nos usa. */
+  alGuardar: () => void;
+  /** Clave propia de borrador: no debe pisar el de otra persona en el mismo navegador. */
+  claveBorrador: string;
+  intro: React.ReactNode;
+};
+
+export function FichaWizard({ edicion }: { edicion?: ModoEdicion } = {}) {
   const navigate = useNavigate();
-  const [data, setData] = useState<Application>(emptyApplication);
+  const [data, setData] = useState<Application>(edicion ? edicion.inicial : emptyApplication);
   const [step, setStep] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
 
+  const claveBorrador = edicion?.claveBorrador ?? DRAFT_KEY;
+
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(DRAFT_KEY);
+      const raw = localStorage.getItem(claveBorrador);
       if (raw) {
         const parsed = JSON.parse(raw) as { data?: Application; step?: number } & Partial<Application>;
         if (parsed.data) {
-          setData({ ...emptyApplication(), ...parsed.data });
+          // En edición, lo guardado en la base manda sobre el borrador local: el
+          // borrador sólo aporta lo que se estaba escribiendo sin haber guardado.
+          setData({ ...emptyApplication(), ...(edicion?.inicial ?? {}), ...parsed.data });
           if (typeof parsed.step === "number") setStep(Math.min(Math.max(parsed.step, 0), STEPS.length - 1));
         } else {
           setData({ ...emptyApplication(), ...(parsed as unknown as Application) });
@@ -60,12 +82,16 @@ export function FichaWizard() {
       /* ignore corrupt draft */
     }
     setLoaded(true);
+    // Sólo al montar, a propósito. Si se volviera a ejecutar al cambiar la ficha
+    // inicial o la clave, pisaría lo que la persona está escribiendo con lo que
+    // había guardado.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (!loaded) return;
-    localStorage.setItem(DRAFT_KEY, JSON.stringify({ data, step }));
-  }, [data, step, loaded]);
+    localStorage.setItem(claveBorrador, JSON.stringify({ data, step }));
+  }, [data, step, loaded, claveBorrador]);
 
   const patch = (partial: Partial<Application>) => {
     setData((d) => ({ ...d, ...partial }));
@@ -87,11 +113,34 @@ export function FichaWizard() {
       return;
     }
     if (step === STEPS.length - 1) {
-      void closeFicha();
+      void (edicion ? guardarEdicion() : closeFicha());
       return;
     }
     setStep((s) => s + 1);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const guardarEdicion = async () => {
+    if (!edicion) return;
+    setSending(true);
+    setError(null);
+    try {
+      await edicion.guardar(data);
+      try {
+        localStorage.removeItem(claveBorrador);
+      } catch {
+        /* el borrador local es una comodidad, no el registro */
+      }
+      // No se navega a /gracias: esa pantalla lee la ficha de este dispositivo,
+      // y quien completa por enlace puede estar en otro.
+      edicion.alGuardar();
+    } catch (err) {
+      setSending(false);
+      // El mensaje del servidor ya viene escrito para quien lo va a leer —un
+      // enlace caducado, uno ya usado—, así que se muestra tal cual.
+      setError(err instanceof Error ? err.message : "No se pudieron guardar tus cambios.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   const closeFicha = async () => {
@@ -165,7 +214,12 @@ export function FichaWizard() {
     <PageShell footer={false}>
       <div className="border-b border-line bg-paper/70">
         <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6">
-          {step === 0 ? (
+          {step === 0 && edicion ? (
+            <div className="mb-4 max-w-prose space-y-3 text-[15px] leading-relaxed text-ink-soft">
+              {edicion.intro}
+            </div>
+          ) : null}
+          {step === 0 && !edicion ? (
             <div className="mb-4 max-w-prose space-y-3 text-[15px] leading-relaxed text-ink-soft">
               <p>
                 Estamos muy emocionad@s de acompañarte en este viaje transformador. El proceso
@@ -182,7 +236,7 @@ export function FichaWizard() {
               </p>
             </div>
           ) : null}
-          <p className="eyebrow">Ficha de admisión</p>
+          <p className="eyebrow">{edicion ? "Completar tu ficha" : "Ficha de admisión"}</p>
           <div className="mt-3 flex items-end justify-between gap-4">
             <h1 className="text-2xl font-normal sm:text-3xl">{STEPS[step].title}</h1>
             <p className="shrink-0 text-xs tracking-[0.14em] text-muted">
@@ -242,7 +296,13 @@ export function FichaWizard() {
               className="inline-flex h-12 min-w-40 items-center justify-center gap-2 rounded-full bg-ink px-6 text-sm text-cream hover:bg-ink-soft disabled:opacity-60"
               disabled={sending}
             >
-              {sending ? "Enviando…" : step === STEPS.length - 1 ? "Cerrar ficha" : "Continuar"}
+              {sending
+                ? "Guardando…"
+                : step === STEPS.length - 1
+                  ? edicion
+                    ? "Guardar cambios"
+                    : "Cerrar ficha"
+                  : "Continuar"}
               <ArrowRight className="size-4" />
             </button>
           </div>

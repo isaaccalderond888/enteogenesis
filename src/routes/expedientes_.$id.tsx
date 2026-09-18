@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { PageShell } from "@/components/site-chrome";
 import { BODY_FIELDS, generoTexto } from "@/lib/application";
 import { RedirectToSignIn, UserButton } from "@/lib/auth/gates";
+import { EnlaceCompletar } from "@/components/enlace-completar";
 import { definicion } from "@/lib/clinica/dominios";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import {
@@ -182,6 +183,14 @@ function ExpedientePage() {
             Llegó {new Date(row.createdAt).toLocaleString("es-MX")}
           </p>
         ) : null}
+        {row.editadaAt ? (
+          <p className="mt-2 rounded-xl border border-review/40 bg-review/5 px-3 py-2 text-xs leading-relaxed text-review">
+            Completada por la participante vía enlace el{" "}
+            {new Date(row.editadaAt).toLocaleString("es-MX")}
+            {row.editadaVeces > 1 ? ` · ${row.editadaVeces} veces` : ""}. Lo que dice ahora puede
+            no ser lo que leíste antes.
+          </p>
+        ) : null}
 
         <section className="mt-8 rounded-3xl border border-sand bg-sand/40 px-5 py-4">
           <p className="eyebrow">Para la entrevista</p>
@@ -190,6 +199,10 @@ function ExpedientePage() {
             Lectura automática. No es un diagnóstico ni un rechazo — ustedes deciden en conversación.
           </p>
         </section>
+
+        <div className="no-print mt-6">
+          <EnlaceCompletar fichaId={row.id} />
+        </div>
 
         <div className="no-print mt-6 flex flex-wrap items-center gap-3">
           <label className="text-sm text-ink-soft">
