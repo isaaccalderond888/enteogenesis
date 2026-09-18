@@ -68,6 +68,24 @@ type FichaRow = {
   editada_veces: number;
 };
 
+/**
+ * Lo que la lista necesita de cada ficha, y nada más.
+ *
+ * El expediente completo pesa: el payload entero (todas las respuestas) más la
+ * lectura clínica de cada persona. La lista sólo pinta dos datos del payload
+ * —ocupación y edad— y dos renglones de la lectura. Traerlo todo hacía salir de
+ * la base veinte veces más datos de los que se muestran, cada vez que alguien
+ * abre Expedientes.
+ */
+type FichaListRow = Omit<FichaRow, "payload" | "notes" | "lectura"> & {
+  ocupacion: string | null;
+  fecha_nacimiento: string | null;
+  lectura: string | null;
+};
+
+/** Lo que caben en los dos renglones que la lista muestra de la lectura. */
+const ASOMO_LECTURA = 240;
+
 function isStatus(v: string): v is FichaStatus {
   return STATUSES.some((s) => s.id === v);
 }
@@ -89,8 +107,7 @@ function parsePayload(raw: string): Application {
   }
 }
 
-function toListItem(row: FichaRow): FichaListItem {
-  const payload = parsePayload(row.payload);
+function toListItem(row: FichaListRow): FichaListItem {
   const flags = parseFlags(row.flags);
   return {
     id: row.id,
@@ -98,7 +115,7 @@ function toListItem(row: FichaRow): FichaListItem {
     email: row.email,
     telefono: row.telefono,
     retiro: row.retiro,
-    ocupacion: payload.ocupacion,
+    ocupacion: row.ocupacion ?? "",
     holdCount: Number(row.hold_count) || flags.filter((f) => f.level === "hold").length,
     reviewCount: flags.filter((f) => f.level === "review").length,
     status: isStatus(row.status) ? row.status : "nueva",
@@ -108,8 +125,8 @@ function toListItem(row: FichaRow): FichaListItem {
     flags: flags
       .map((f) => ({ level: f.level, label: f.label, detail: f.detail }))
       .sort((a, b) => Number(b.level === "hold") - Number(a.level === "hold")),
-    edad: ageFromIso(payload.fechaNacimiento),
-    lectura: row.lectura,
+    edad: ageFromIso(row.fecha_nacimiento ?? ""),
+    lectura: row.lectura ?? "",
   };
 }
 
@@ -180,12 +197,41 @@ export const listFichas = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     await requireStaff(context.userId);
     const sql = await getSql();
-    const rows = await sql<FichaRow>`
-      select id, nombre, email, telefono, retiro, payload, flags, hold_count, lectura, status, notes, created_at, editada_at, editada_veces
-      from fichas
-      order by created_at desc
-    `;
-    return rows.map(toListItem);
+    try {
+      // `payload` se guarda como texto, así que el cast a jsonb es lo que
+      // permite sacar dos campos sin traerse el expediente entero.
+      const rows = await sql<FichaListRow>`
+        select id, nombre, email, telefono, retiro,
+               payload::jsonb->>'ocupacion' as ocupacion,
+               payload::jsonb->>'fechaNacimiento' as fecha_nacimiento,
+               flags, hold_count,
+               left(lectura, ${ASOMO_LECTURA}) as lectura,
+               status, created_at, editada_at, editada_veces
+        from fichas
+        order by created_at desc
+      `;
+      return rows.map(toListItem);
+    } catch (err) {
+      // Un payload que no sea JSON válido hace fallar el cast y se llevaría la
+      // lista entera por delante. No debería pasar —lo escribimos nosotros con
+      // JSON.stringify— pero quedarse sin Expedientes por una ficha corrupta
+      // sería peor que gastar unos kilobytes de más.
+      console.error("[fichas] lista ligera falló, leyendo el payload completo", err);
+      const rows = await sql<FichaRow>`
+        select id, nombre, email, telefono, retiro, payload, flags, hold_count,
+               lectura, status, created_at, editada_at, editada_veces
+        from fichas
+        order by created_at desc
+      `;
+      return rows.map((row) => {
+        const payload = parsePayload(row.payload);
+        return toListItem({
+          ...row,
+          ocupacion: payload.ocupacion,
+          fecha_nacimiento: payload.fechaNacimiento,
+        });
+      });
+    }
   });
 
 export const getFicha = createServerFn({ method: "GET" })
@@ -200,10 +246,17 @@ export const getFicha = createServerFn({ method: "GET" })
     `;
     const row = rows[0];
     if (!row) return null;
+    // Aquí sí hace falta el payload entero, así que los dos campos que la lista
+    // recibe ya extraídos se sacan de él en vez de pedirlos otra vez.
+    const payload = parsePayload(row.payload);
     return {
-      ...toListItem(row),
+      ...toListItem({
+        ...row,
+        ocupacion: payload.ocupacion,
+        fecha_nacimiento: payload.fechaNacimiento,
+      }),
       notes: row.notes,
-      payload: parsePayload(row.payload),
+      payload,
     } satisfies FichaDetail;
   });
 
