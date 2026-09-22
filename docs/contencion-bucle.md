@@ -41,22 +41,41 @@ siempre y no cuestan nada. Verificado en el navegador: la versión corregida pid
 
 ## Las rutas viejas
 
-En Vercel → el proyecto → **Firewall** → regla nueva → condición *Request Path*
-*starts with*, acción **Deny**. Una por cada una:
+**En producción el identificador es un hash de 64 caracteres, no la cadena
+base64 que muestra el servidor de desarrollo.** Es el error que estuvo a punto
+de costar una regla de firewall inservible: lo que se observa con `vite dev` no
+es lo que pide el sitio publicado. Para obtener las rutas de verdad hay que
+compilar (`npx vite build`) y leerlas del bundle.
+
+Rutas de la versión anterior, extraídas del build de producción del commit
+previo al renombre y confirmadas contra las que Vercel registraba en vivo:
 
 ```
-/_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZmljaGFzLnRzP3Rzcy1zZXJ2ZXJmbi1zcGxpdCIsImV4cG9ydCI6Imxpc3RGaWNoYXNfY3JlYXRlU2VydmVyRm5faGFuZGxlciJ9
-/_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZmljaGFzLnRzP3Rzcy1zZXJ2ZXJmbi1zcGxpdCIsImV4cG9ydCI6Imxpc3RTdGFmZl9jcmVhdGVTZXJ2ZXJGbl9oYW5kbGVyIn0
-/_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZmljaGFzLnRzP3Rzcy1zZXJ2ZXJmbi1zcGxpdCIsImV4cG9ydCI6ImdldEZpY2hhX2NyZWF0ZVNlcnZlckZuX2hhbmRsZXIifQ
-/_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZmljaGFzLnRzP3Rzcy1zZXJ2ZXJmbi1zcGxpdCIsImV4cG9ydCI6ImdldExlY3R1cmFfY3JlYXRlU2VydmVyRm5faGFuZGxlciJ9
+/_serverFn/e2286fde6b4d58b147d7bcc66c569d379edf15f8087950822a78deeadb394238   listFichas
+/_serverFn/317eb383a54446b5781f0bb0ae1f38adc0b02df2ee3b123439ef5179f779f356   listStaff
+/_serverFn/5d81acf2ac73150f54844bd20cf66cba3fd4e9e73c861d4fcab21f9d4a2c01cb   getFicha
+/_serverFn/1229afc4516072cb3da9a636e4985e03a9edac86914af84afcbda0dc3a7d1c43   getLectura
 ```
 
-**Nunca bloquear `/_serverFn/` completo**: por ahí pasa también el formulario
-público, y dejaría de poder enviarse una ficha.
+Las dos primeras son las que aparecían disparadas en Vercel; las otras dos
+salen del mismo build.
 
-Las dos primeras están verificadas contra lo que el navegador pide de verdad;
-las otras dos se derivan de la misma fórmula, que resultó exacta en esos dos
-casos.
+En Vercel → el proyecto (**`enteogenesis-4itw`**, no `enteogenesis`) →
+**Firewall** → regla nueva → *Request Path* *equals* la ruta → **Deny**.
+
+**Nunca bloquear `/_serverFn/` completo ni con comodín**: por ahí pasa también
+el formulario público, y dejaría de poder enviarse una ficha.
+
+### Cómo sacar las rutas nuevas, para comprobar que NO coinciden
+
+```
+npx vite build
+grep -rhoE 'ns\(`[0-9a-f]{64}`\)' .vercel/output/static/assets/*.js | sort -u
+```
+
+Para mapear cada hash a su función, buscar el hash en
+`.vercel/output/functions/__server.func/_ssr/ssr.mjs`: el nombre exportado
+aparece junto a él.
 
 ## Si volviera a pasar
 
