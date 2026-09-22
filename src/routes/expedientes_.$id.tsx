@@ -8,13 +8,13 @@ import { EnlaceCompletar } from "@/components/enlace-completar";
 import { definicion } from "@/lib/clinica/dominios";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import {
-  getFicha,
+  fichaDelPanel,
   STATUSES,
   updateFichaNotes,
   updateFichaStatus,
   type FichaDetail,
   type FichaStatus,
-  getLectura,
+  lecturaDelPanel,
   generarLectura,
   type LecturaGuardada,
 } from "@/lib/fichas";
@@ -90,10 +90,13 @@ function ExpedientePage() {
   const [generando, setGenerando] = useState(false);
   const [errorLectura, setErrorLectura] = useState<string | null>(null);
 
+  // Ver la nota en la lista: el objeto del usuario no sirve como dependencia.
+  const userId = user?.id ?? null;
+
   useEffect(() => {
-    if (isPending || !user) return;
+    if (isPending || !userId) return;
     let cancelled = false;
-    getFicha({ data: id })
+    fichaDelPanel({ data: id })
       .then((data) => {
         if (cancelled) return;
         setRow(data);
@@ -102,7 +105,7 @@ function ExpedientePage() {
       .catch(() => {
         if (!cancelled) setRow(null);
       });
-    getLectura({ data: id })
+    lecturaDelPanel({ data: id })
       .then((l) => {
         if (!cancelled) setLectura(l);
       })
@@ -112,7 +115,7 @@ function ExpedientePage() {
     return () => {
       cancelled = true;
     };
-  }, [id, isPending, user]);
+  }, [id, isPending, userId]);
 
   if (isPending) {
     return (

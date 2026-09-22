@@ -8,6 +8,7 @@ import {
   type Application,
 } from "@/lib/application";
 import { authMiddleware } from "@/lib/auth/middleware";
+import { olvidar } from "@/lib/cache-breve";
 import { getSql } from "@/lib/db";
 import { requireStaff } from "@/lib/fichas";
 import {
@@ -178,6 +179,12 @@ export const guardarPorEnlace = createServerFn({ method: "POST" })
       await sql`delete from lecturas where ficha_id = ${fichaId}`;
 
       await sql`commit`;
+
+      // La ficha acaba de cambiar: lo guardado en memoria unos segundos ya no
+      // corresponde, y el expediente se mira justo después de esto.
+      olvidar(`ficha:${fichaId}`);
+      olvidar(`lectura:${fichaId}`);
+      olvidar("fichas:lista");
     } catch (error) {
       await sql`rollback`;
       throw error;

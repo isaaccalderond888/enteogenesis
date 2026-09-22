@@ -38,9 +38,11 @@ function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  const userId = user?.id ?? null;
+
   useEffect(() => {
-    if (!isPending && user) void navigate({ to: "/expedientes" });
-  }, [isPending, user, navigate]);
+    if (!isPending && userId) void navigate({ to: "/expedientes" });
+  }, [isPending, userId, navigate]);
 
   const submit = async () => {
     setError(null);
