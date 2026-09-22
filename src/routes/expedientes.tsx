@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { PageShell } from "@/components/site-chrome";
 import { RedirectToSignIn, UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
-import { inviteStaff, listFichas, listStaff, STATUSES, type FichaListItem } from "@/lib/fichas";
+import { inviteStaff, fichasDelPanel, equipoDelPanel, STATUSES, type FichaListItem } from "@/lib/fichas";
 
 /**
  * Aviso que la persona autorizada necesita recibir. No hay envío de correo en el
@@ -64,7 +64,7 @@ function ExpedientesPage() {
   useEffect(() => {
     if (isPending || !userId) return;
     let cancelled = false;
-    listFichas()
+    fichasDelPanel()
       .then((data) => {
         if (!cancelled) setRows(data);
       })
@@ -74,12 +74,12 @@ function ExpedientesPage() {
         setError(message === "Unauthorized" ? "Este acceso no está autorizado para el panel." : message);
         setRows([]);
       });
-    listStaff()
+    equipoDelPanel()
       .then((s) => {
         if (!cancelled) setStaffInfo(s);
       })
       .catch(() => {
-        /* listFichas already surfaces auth errors */
+        /* fichasDelPanel already surfaces auth errors */
       });
     return () => {
       cancelled = true;
@@ -240,7 +240,7 @@ function ExpedientesPage() {
                   setInviteMsg(null);
                   setAutorizado(email);
                   setCopiado(false);
-                  return listStaff().then(setStaffInfo);
+                  return equipoDelPanel().then(setStaffInfo);
                 })
                 .catch((err: unknown) => {
                   setInviteMsg(err instanceof Error ? err.message : "No se pudo autorizar.");

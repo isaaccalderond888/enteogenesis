@@ -8,13 +8,13 @@ import { EnlaceCompletar } from "@/components/enlace-completar";
 import { definicion } from "@/lib/clinica/dominios";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import {
-  getFicha,
+  fichaDelPanel,
   STATUSES,
   updateFichaNotes,
   updateFichaStatus,
   type FichaDetail,
   type FichaStatus,
-  getLectura,
+  lecturaDelPanel,
   generarLectura,
   type LecturaGuardada,
 } from "@/lib/fichas";
@@ -96,7 +96,7 @@ function ExpedientePage() {
   useEffect(() => {
     if (isPending || !userId) return;
     let cancelled = false;
-    getFicha({ data: id })
+    fichaDelPanel({ data: id })
       .then((data) => {
         if (cancelled) return;
         setRow(data);
@@ -105,7 +105,7 @@ function ExpedientePage() {
       .catch(() => {
         if (!cancelled) setRow(null);
       });
-    getLectura({ data: id })
+    lecturaDelPanel({ data: id })
       .then((l) => {
         if (!cancelled) setLectura(l);
       })

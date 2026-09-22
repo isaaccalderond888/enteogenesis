@@ -201,7 +201,23 @@ export const submitFicha = createServerFn({ method: "POST" })
     return { id };
   });
 
-export const listFichas = createServerFn({ method: "GET" })
+/**
+ * Los nombres de estas cuatro funciones son parte de la contención, no un
+ * capricho.
+ *
+ * La dirección con la que el navegador llama a una función de servidor sale del
+ * archivo y del nombre exportado —nada más—, así que NO cambia entre
+ * despliegues. Cuando una pestaña vieja quedó pidiendo sin parar, la única
+ * forma de bloquearla en el firewall sin bloquear también al sitio corregido es
+ * que el sitio corregido llame a otra dirección. Por eso se renombraron:
+ *
+ *   listFichas -> fichasDelPanel      listStaff  -> equipoDelPanel
+ *   getFicha   -> fichaDelPanel       getLectura -> lecturaDelPanel
+ *
+ * Las direcciones viejas quedan bloqueadas para siempre y no cuestan nada.
+ * Si alguna vez hay que repetir la maniobra, basta con volver a renombrar.
+ */
+export const fichasDelPanel = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
     await requireStaff(context.userId);
@@ -247,7 +263,7 @@ async function leerLista(): Promise<FichaListItem[]> {
     }
 }
 
-export const getFicha = createServerFn({ method: "GET" })
+export const fichaDelPanel = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .validator((id: string) => id)
   .handler(async ({ context, data: id }) => {
@@ -317,7 +333,7 @@ export const inviteStaff = createServerFn({ method: "POST" })
     return { ok: true, email };
   });
 
-export const listStaff = createServerFn({ method: "GET" })
+export const equipoDelPanel = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
     await requireStaff(context.userId);
@@ -340,7 +356,7 @@ export type LecturaGuardada = {
 };
 
 /** La lectura vigente de una ficha, si ya se generó. */
-export const getLectura = createServerFn({ method: "GET" })
+export const lecturaDelPanel = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .validator((id: string) => id)
   .handler(async ({ context, data: id }): Promise<LecturaGuardada | null> => {
