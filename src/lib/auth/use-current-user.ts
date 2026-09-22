@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { authClient, authEnabled } from "./client";
 
 /** Normalized user shape used across the app, auth on or off. */
@@ -58,18 +59,33 @@ export function useCurrentUserState(): CurrentUserState {
   if (!authEnabled) return { user: DEV_USER, isPending: false };
   const { data, isPending } = authClient.useSession();
   const user = data?.user;
-  return {
-    user: user
-      ? {
-          id: user.id,
-          displayName: user.name ?? null,
-          primaryEmail: user.email ?? null,
-          profileImageUrl: user.image ?? null,
-          isDevFallback: false,
-        }
-      : null,
-    isPending,
-  };
+
+  // La identidad de este objeto tiene que sobrevivir al render.
+  //
+  // Devolver un objeto literal nuevo cada vez parece inofensivo, pero cualquier
+  // `useEffect` que dependa de `user` lo ve distinto en cada render y se vuelve
+  // a disparar. Si ese efecto además guarda lo que trae —y los de Expedientes
+  // lo hacen— el ciclo se cierra solo: consulta, guarda, re-render, objeto
+  // nuevo, consulta otra vez. Una pestaña abierta martillea el servidor sin que
+  // nadie toque nada.
+  //
+  // Las dependencias son los campos primitivos, no el objeto: así sólo cambia
+  // cuando de verdad cambió la sesión.
+  return useMemo(
+    () => ({
+      user: user
+        ? {
+            id: user.id,
+            displayName: user.name ?? null,
+            primaryEmail: user.email ?? null,
+            profileImageUrl: user.image ?? null,
+            isDevFallback: false,
+          }
+        : null,
+      isPending,
+    }),
+    [user?.id, user?.name, user?.email, user?.image, isPending],
+  );
 }
 
 /**

@@ -56,8 +56,13 @@ function ExpedientesPage() {
   const [copiado, setCopiado] = useState(false);
   const [staffInfo, setStaffInfo] = useState<{ staff: string[]; invites: string[] } | null>(null);
 
+  // Depende del identificador, no del objeto del usuario. Un objeto nuevo en
+  // cada render volvería a disparar este efecto, que al guardar lo que trae
+  // provoca otro render: la pestaña se queda consultando sola, sin parar.
+  const userId = user?.id ?? null;
+
   useEffect(() => {
-    if (isPending || !user) return;
+    if (isPending || !userId) return;
     let cancelled = false;
     listFichas()
       .then((data) => {
@@ -79,7 +84,7 @@ function ExpedientesPage() {
     return () => {
       cancelled = true;
     };
-  }, [isPending, user]);
+  }, [isPending, userId]);
 
   const filtered = useMemo(() => {
     if (!rows) return [];

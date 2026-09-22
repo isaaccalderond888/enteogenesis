@@ -90,8 +90,11 @@ function ExpedientePage() {
   const [generando, setGenerando] = useState(false);
   const [errorLectura, setErrorLectura] = useState<string | null>(null);
 
+  // Ver la nota en la lista: el objeto del usuario no sirve como dependencia.
+  const userId = user?.id ?? null;
+
   useEffect(() => {
-    if (isPending || !user) return;
+    if (isPending || !userId) return;
     let cancelled = false;
     getFicha({ data: id })
       .then((data) => {
@@ -112,7 +115,7 @@ function ExpedientePage() {
     return () => {
       cancelled = true;
     };
-  }, [id, isPending, user]);
+  }, [id, isPending, userId]);
 
   if (isPending) {
     return (
