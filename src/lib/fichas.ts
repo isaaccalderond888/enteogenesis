@@ -10,6 +10,7 @@ import {
   type SafetyFlag,
 } from "@/lib/application";
 import { authMiddleware } from "@/lib/auth/middleware";
+import { breve, olvidar } from "@/lib/cache-breve";
 import { getSql } from "@/lib/db";
 import { SITE } from "@/lib/site";
 import type { LecturaFicha } from "@/lib/clinica/lectura-ficha";
@@ -135,6 +136,13 @@ function toListItem(row: FichaListRow): FichaListItem {
  * Public applicants never hit this — they only INSERT via submitFicha.
  */
 export async function requireStaff(userId: string) {
+  // La comprobación se repite en cada llamada y consulta la base dos veces.
+  // Guardarla unos segundos no afloja el candado: quitarle el acceso a alguien
+  // tarda, como mucho, esos segundos en surtir efecto.
+  return breve(`staff:${userId}`, () => comprobarStaff(userId));
+}
+
+async function comprobarStaff(userId: string) {
   const sql = await getSql();
   const { getSessionUser, UnauthorizedError } = await import("@/lib/auth/verify.server");
   const session = await getSessionUser();
@@ -189,6 +197,7 @@ export const submitFicha = createServerFn({ method: "POST" })
         ${"nueva"}
       )
     `;
+    olvidar("fichas:lista");
     return { id };
   });
 
@@ -196,6 +205,10 @@ export const listFichas = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
     await requireStaff(context.userId);
+    return breve("fichas:lista", () => leerLista());
+  });
+
+async function leerLista(): Promise<FichaListItem[]> {
     const sql = await getSql();
     try {
       // `payload` se guarda como texto, así que el cast a jsonb es lo que
@@ -232,13 +245,17 @@ export const listFichas = createServerFn({ method: "GET" })
         });
       });
     }
-  });
+}
 
 export const getFicha = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .validator((id: string) => id)
   .handler(async ({ context, data: id }) => {
     await requireStaff(context.userId);
+    return breve(`ficha:${id}`, () => leerFichaCompleta(id));
+  });
+
+async function leerFichaCompleta(id: string): Promise<FichaDetail | null> {
     const sql = await getSql();
     const rows = await sql<FichaRow>`
       select id, nombre, email, telefono, retiro, payload, flags, hold_count, lectura, status, notes, created_at, editada_at, editada_veces
@@ -258,7 +275,7 @@ export const getFicha = createServerFn({ method: "GET" })
       notes: row.notes,
       payload,
     } satisfies FichaDetail;
-  });
+}
 
 export const updateFichaStatus = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
@@ -268,6 +285,8 @@ export const updateFichaStatus = createServerFn({ method: "POST" })
     if (!isStatus(data.status)) throw new Error("Estado inválido.");
     const sql = await getSql();
     await sql`update fichas set status = ${data.status} where id = ${data.id}`;
+    olvidar(`ficha:${data.id}`);
+    olvidar("fichas:lista");
     return { ok: true };
   });
 
@@ -281,6 +300,8 @@ export const updateFichaNotes = createServerFn({ method: "POST" })
     await requireStaff(context.userId);
     const sql = await getSql();
     await sql`update fichas set notes = ${data.notes} where id = ${data.id}`;
+    olvidar(`ficha:${data.id}`);
+    olvidar("fichas:lista");
     return { ok: true };
   });
 
@@ -292,6 +313,7 @@ export const inviteStaff = createServerFn({ method: "POST" })
     if (!email.includes("@")) throw new Error("Correo inválido.");
     const sql = await getSql();
     await sql`insert into staff_invites (email) values (${email}) on conflict (email) do nothing`;
+    olvidar("staff:");
     return { ok: true, email };
   });
 
@@ -299,13 +321,15 @@ export const listStaff = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
     await requireStaff(context.userId);
-    const sql = await getSql();
-    const people = await sql<{ email: string }>`select email from staff order by created_at`;
-    const invites = await sql<{ email: string }>`select email from staff_invites`;
-    return {
-      staff: people.map((p) => p.email).filter(Boolean),
-      invites: invites.map((p) => p.email),
-    };
+    return breve("staff:lista", async () => {
+      const sql = await getSql();
+      const people = await sql<{ email: string }>`select email from staff order by created_at`;
+      const invites = await sql<{ email: string }>`select email from staff_invites`;
+      return {
+        staff: people.map((p) => p.email).filter(Boolean),
+        invites: invites.map((p) => p.email),
+      };
+    });
   });
 
 export type LecturaGuardada = {
@@ -321,6 +345,10 @@ export const getLectura = createServerFn({ method: "GET" })
   .validator((id: string) => id)
   .handler(async ({ context, data: id }): Promise<LecturaGuardada | null> => {
     await requireStaff(context.userId);
+    return breve(`lectura:${id}`, () => leerLectura(id));
+  });
+
+async function leerLectura(id: string): Promise<LecturaGuardada | null> {
     const sql = await getSql();
     const filas = await sql<{
       contenido: string;
@@ -347,7 +375,7 @@ export const getLectura = createServerFn({ method: "GET" })
       marcoVersion: fila.marco_version,
       creadaAt: String(fila.creada_at),
     };
-  });
+}
 
 /**
  * Genera la lectura clínica de una ficha y la guarda, reemplazando la anterior.
@@ -377,6 +405,7 @@ export const generarLectura = createServerFn({ method: "POST" })
             marco_version = excluded.marco_version,
             creada_at = excluded.creada_at
     `;
+    olvidar(`lectura:${id}`);
     return {
       contenido,
       modelo: MODELO,
