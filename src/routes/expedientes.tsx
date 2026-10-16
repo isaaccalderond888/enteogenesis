@@ -4,6 +4,12 @@ import { PageShell } from "@/components/site-chrome";
 import { RedirectToSignIn, UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { inviteStaff, fichasDelPanel, equipoDelPanel, STATUSES, type FichaListItem } from "@/lib/fichas";
+import {
+  TODOS_LOS_RETIROS,
+  coincideElRetiro,
+  etiquetaDeRetiro,
+  retirosDeLasFichas,
+} from "@/lib/retiros";
 
 /**
  * Aviso que la persona autorizada necesita recibir. No hay envío de correo en el
@@ -50,6 +56,7 @@ function ExpedientesPage() {
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<string>("todas");
+  const [retiro, setRetiro] = useState<string>(TODOS_LOS_RETIROS);
   const [invite, setInvite] = useState("");
   const [inviteMsg, setInviteMsg] = useState<string | null>(null);
   const [autorizado, setAutorizado] = useState<string | null>(null);
@@ -86,11 +93,14 @@ function ExpedientesPage() {
     };
   }, [isPending, userId]);
 
+  const retiros = useMemo(() => retirosDeLasFichas(rows ?? []), [rows]);
+
   const filtered = useMemo(() => {
     if (!rows) return [];
     const needle = q.trim().toLowerCase();
     return rows.filter((r) => {
       if (status !== "todas" && r.status !== status) return false;
+      if (!coincideElRetiro(r.retiro, retiro)) return false;
       if (!needle) return true;
       return (
         r.nombre.toLowerCase().includes(needle) ||
@@ -99,7 +109,7 @@ function ExpedientesPage() {
         r.ocupacion.toLowerCase().includes(needle)
       );
     });
-  }, [rows, q, status]);
+  }, [rows, q, status, retiro]);
 
   if (isPending) {
     return (
@@ -110,7 +120,16 @@ function ExpedientesPage() {
   }
   if (!user) return <RedirectToSignIn />;
 
-  const holds = rows?.filter((r) => r.holdCount > 0).length ?? 0;
+  // Las pausas se cuentan sobre lo que se está viendo: con un retiro filtrado,
+  // decir «3 con pausa» del archivo entero manda a buscar fichas que no están
+  // en la lista.
+  const holds = filtered.filter((r) => r.holdCount > 0).length;
+  const filtrando = retiro !== TODOS_LOS_RETIROS || status !== "todas" || q.trim() !== "";
+  const resumen = rows
+    ? `${filtrando ? `${filtered.length} de ${rows.length}` : rows.length} ficha${
+        (filtrando ? filtered.length : rows.length) === 1 ? "" : "s"
+      }${holds ? ` · ${holds} con pausa` : ""}`
+    : "Cargando el archivo…";
 
   return (
     <PageShell internal footer={false}>
@@ -119,11 +138,7 @@ function ExpedientesPage() {
           <div>
             <p className="eyebrow">Expedientes</p>
             <h1 className="mt-2 text-3xl font-normal">Admisión</h1>
-            <p className="mt-2 text-sm text-ink-soft">
-              {rows
-                ? `${rows.length} ficha${rows.length === 1 ? "" : "s"}${holds ? ` · ${holds} con pausa` : ""}`
-                : "Cargando el archivo…"}
-            </p>
+            <p className="mt-2 text-sm text-ink-soft">{resumen}</p>
           </div>
           <UserButton />
         </div>
@@ -143,6 +158,7 @@ function ExpedientesPage() {
             value={status}
             onChange={(e) => setStatus(e.target.value)}
             className="h-12 rounded-full border border-line bg-paper px-4 text-sm"
+            aria-label="Filtrar por estado"
           >
             <option value="todas">Todas</option>
             {STATUSES.map((s) => (
@@ -151,6 +167,23 @@ function ExpedientesPage() {
               </option>
             ))}
           </select>
+          {/* Sólo cuando hay más de un retiro: con uno solo, el desplegable no
+              distingue nada y estorba. */}
+          {retiros.length > 1 ? (
+            <select
+              value={retiro}
+              onChange={(e) => setRetiro(e.target.value)}
+              className="h-12 rounded-full border border-line bg-paper px-4 text-sm"
+              aria-label="Filtrar por retiro"
+            >
+              <option value={TODOS_LOS_RETIROS}>Todos los retiros</option>
+              {retiros.map((r) => (
+                <option key={r.valor} value={r.valor}>
+                  {etiquetaDeRetiro(r.valor)} ({r.cuantas})
+                </option>
+              ))}
+            </select>
+          ) : null}
         </div>
 
         <ul className="mt-6 divide-y divide-line rounded-3xl border border-line bg-paper">
